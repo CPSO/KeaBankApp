@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">KeaBankApp</string>
+    <string name="app_name">Kea Bank App</string>
+    <string name="login_title">Sign In</string>
+    <string name="bank_logo">bank_logo</string>
 </resources>
