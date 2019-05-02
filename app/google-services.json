@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "525614824947",
+    "firebase_url": "https://keabankapp.firebaseio.com",
+    "project_id": "keabankapp",
+    "storage_bucket": "keabankapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:525614824947:android:60d6bd594b2127ba",
+        "android_client_info": {
+          "package_name": "com.example.keabankapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "525614824947-pdpaad84gf7dlvdatl96dk57bmqkp4uq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.keabankapp",
+            "certificate_hash": "08694962e159c31186ed70b64b419aa7f900eeb8"
+          }
+        },
+        {
+          "client_id": "525614824947-q4lgte5qfn3cnsli2bd180e29alfja2c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgKtCH0ET-Ey2d-VqyBgnspVaZ6UkYbwI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "525614824947-q4lgte5qfn3cnsli2bd180e29alfja2c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
