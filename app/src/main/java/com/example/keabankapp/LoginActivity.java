@@ -1,5 +1,6 @@
 package com.example.keabankapp;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,6 +32,7 @@ public class LoginActivity extends AppCompatActivity {
         public void onClick(View v) {
             Log.d(TAG, "onClickSignIn: Called ");
 
+
         }
     };
 
@@ -38,7 +40,8 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             Log.d(TAG, "onClickCreateUser: Called ");
-
+            Intent intent = new Intent(LoginActivity.this, CreateUserActivity.class);
+            startActivity(intent);
 
         }
     };
