@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/account_page"
+        android:title="@string/account_option_menu"
+        app:showAsAction="never"/>
+    <item android:id="@+id/card_page"
+        android:title="@string/cards_option_menu"
+        app:showAsAction="never"/>
+    <item android:id="@+id/contact_page"
+        android:title="@string/contact_option_menu"
+        app:showAsAction="never"/>
+    <item android:id="@+id/user_page"
+        android:title="@string/user_option_menu"
+        app:showAsAction="never"/>
+    <item android:id="@+id/sign_out_page"
+        android:title="@string/sign_out_option_menu"
+        app:showAsAction="never"/>
+</menu>
