@@ -7,4 +7,7 @@
     <string name="contact_option_menu">Contact</string>
     <string name="user_option_menu">User</string>
     <string name="sign_out_option_menu">Sign out</string>
+    <string name="toastSelectPosition">Position</string>
+    <string name="toastSelectID">ID:</string>
+    <string name="toastLoginError">Wrong mail or password</string>
 </resources>
