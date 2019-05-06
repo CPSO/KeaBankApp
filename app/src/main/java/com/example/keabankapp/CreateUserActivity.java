@@ -75,10 +75,12 @@ public class CreateUserActivity extends AppCompatActivity {
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
 
+                            String aName = "Account";
+                            double aAmount = 0.00;
                             String userId = user.getUid();
                             DocumentReference accountRef = FirebaseFirestore.getInstance()
                                     .collection(userId).document("accounts").collection("accounts").document();
-                            accountRef.set(new AccountModel());
+                            accountRef.set(new AccountModel(aName,aAmount));
 
                         } else {
                             // If sign in fails, display a message to the user.
