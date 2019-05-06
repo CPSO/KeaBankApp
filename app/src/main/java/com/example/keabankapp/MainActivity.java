@@ -29,12 +29,13 @@ import com.google.firebase.firestore.Query;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     //creates a referance to the collection in Firestore
-    private CollectionReference accountsListRef = db.collection("courses");
+    private CollectionReference accountsListRef = db.collection(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).document("accounts").collection("accounts");
     //Firebase Auth
     private FirebaseAuth mAuth;
     //Firebase
@@ -165,9 +166,8 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         Log.d(TAG, "onStart: Called ");
         adapter.startListening();
-        /*
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
-        */
+
 
     }
 
@@ -177,10 +177,9 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
         Log.d(TAG, "onStop: Called");
         adapter.stopListening();
-        /*
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
         }
-        */
+
     }
 }
