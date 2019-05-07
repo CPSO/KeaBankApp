@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,8 +14,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
+import com.example.keabankapp.account.AccountCreate;
 import com.example.keabankapp.adapter.AccountAdapter;
 import com.example.keabankapp.models.AccountModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
@@ -47,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(fabOnClick);
         Log.d(TAG, "onCreate: Called");
         setUpRecyclerView();
         setupFirebaseAuth();
@@ -123,6 +129,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private View.OnClickListener fabOnClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d(TAG, "createAccount: pressed");
+            Intent intent = new Intent(MainActivity.this, AccountCreate.class);
+            startActivity(intent);
+        }
+    };
 
 
 

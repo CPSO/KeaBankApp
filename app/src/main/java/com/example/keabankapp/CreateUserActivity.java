@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.keabankapp.account.AccountCreate;
 import com.example.keabankapp.models.AccountModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -77,10 +78,12 @@ public class CreateUserActivity extends AppCompatActivity {
 
                             String aName = "Account";
                             double aAmount = 0.00;
+                            String aType = "default";
+
                             String userId = user.getUid();
                             DocumentReference accountRef = FirebaseFirestore.getInstance()
                                     .collection(userId).document("accounts").collection("accounts").document();
-                            accountRef.set(new AccountModel(aName,aAmount));
+                            accountRef.set(new AccountModel(aName,aAmount,aType));
 
                         } else {
                             // If sign in fails, display a message to the user.
@@ -97,6 +100,7 @@ public class CreateUserActivity extends AppCompatActivity {
     }
 
     private void createAccount (){
+
 
     }
 
