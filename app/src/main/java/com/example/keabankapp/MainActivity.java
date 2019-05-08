@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.keabankapp.account.AccountCreate;
+import com.example.keabankapp.account.AccountDetails;
 import com.example.keabankapp.adapter.AccountAdapter;
 import com.example.keabankapp.models.AccountModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
@@ -114,18 +115,18 @@ public class MainActivity extends AppCompatActivity {
 
 
                 String id = documentSnapshot.getId();
-                //String path = documentSnapshot.getReference().getPath();
-                //String blob = adapter.getItem(position).aName;
+                String path = documentSnapshot.getReference().getPath();
+                String name = adapter.getItem(position).getaName();
 
 
                 Toast.makeText(MainActivity.this,getString(R.string.toastSelectPosition) + position + getString(R.string.toastSelectID) + id, Toast.LENGTH_SHORT).show();
 
-                //Intent intent = new Intent(MainActivity.this, CourseRatingActivity.class);
+                Intent intent = new Intent(MainActivity.this, AccountDetails.class);
 
-               // intent.putExtra("courseID", id);
-                //intent.putExtra("coursePath", path);
-                //intent.putExtra("courseName", blob);
-                //startActivity(intent);
+                intent.putExtra("accountID", id);
+                intent.putExtra("accountPath", path);
+                intent.putExtra("accountName", name);
+                startActivity(intent);
             }
         });
     }

@@ -10,8 +10,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
+import com.example.keabankapp.CreateUserActivity;
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.MainActivity;
 import com.example.keabankapp.R;
@@ -33,9 +36,10 @@ public class AccountCreate extends AppCompatActivity {
     //Firebase
     private FirebaseAuth.AuthStateListener mAuthListener;
     String accountType[] = {"savings","budget","pension", "default", "business"};
+    EditText accountName;
     Spinner spinner;
     Button btnCreateNewAccount;
-    private String selectedAccount;
+    private String selectedAccountType;
 
 
 
@@ -47,6 +51,7 @@ public class AccountCreate extends AppCompatActivity {
         spinner = findViewById(R.id.spinnerAccType);
         btnCreateNewAccount = findViewById(R.id.btnSaveNewAccount);
         btnCreateNewAccount.setOnClickListener(onClickCreateAccount);
+        accountName = findViewById(R.id.etAccName);
         setupFirebaseAuth();
         spinnerAdapter();
     }
@@ -84,15 +89,17 @@ public class AccountCreate extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG, "onItemSelected: get selected item " + parent.getSelectedItem());
                 Log.d(TAG, "onItemSelected: get slecet item at pos " + parent.getItemAtPosition(position));
+                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                Log.d(TAG, "onItemSelected: just show the user id " + userId);
 
-                selectedAccount = parent.getItemAtPosition(position).toString();
-                Log.d(TAG, "onItemSelected: account " + selectedAccount);
+                selectedAccountType = parent.getItemAtPosition(position).toString();
+                Log.d(TAG, "onItemSelected: account " + selectedAccountType);
 
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                parent.setSelection(3);
+                parent.setSelection(0);
             }
         });
 
@@ -101,12 +108,24 @@ public class AccountCreate extends AppCompatActivity {
     private View.OnClickListener onClickCreateAccount = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+
             Log.d(TAG, "onClick: called");
 
-            String userId = user.getUid();
-            DocumentReference accountRef = FirebaseFirestore.getInstance()
-                    .collection(userId).document("accounts").collection("accounts").document();
-            accountRef.set(new AccountModel(aName,aAmount,aType));
+                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+                String aName = accountName.getText().toString();
+                double aAmount = 0.00;
+                String aType = selectedAccountType;
+
+                DocumentReference accountRef = FirebaseFirestore.getInstance()
+                        .collection(userId).document("accounts").collection("accounts").document();
+                accountRef.set(new AccountModel(aName,aAmount,aType));
+
+            Toast.makeText(AccountCreate.this, "Created a new account",
+                    Toast.LENGTH_SHORT).show();
+
+                finish();
+
 
         }
     };
