@@ -31,7 +31,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 
-public class AccountDetails extends AppCompatActivity {
+public class AccountDetails extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "AccountDetails";
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     //Firebase Auth
@@ -43,7 +43,7 @@ public class AccountDetails extends AppCompatActivity {
     private String pathForAccount;
     private TextView tvAccountName, tvAccountType, tvAccountBalance;
     private String DocumentID;
-    Button btnDepositMoney;
+    Button btnDepositMoney, btnTransferMoney;
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -60,7 +60,9 @@ public class AccountDetails extends AppCompatActivity {
         tvAccountType = findViewById(R.id.tvADType);
         tvAccountBalance = findViewById(R.id.tvADAmount);
         btnDepositMoney = findViewById(R.id.btnDepositMoney);
-        btnDepositMoney.setOnClickListener(onClickDepositMoney);
+        btnTransferMoney = findViewById(R.id.btnTransferMoney);
+        btnTransferMoney.setOnClickListener(this);
+        btnDepositMoney.setOnClickListener(this);
     }
 
     //Graps the intent send from the MainActivity and binds the document collections
@@ -101,7 +103,7 @@ public class AccountDetails extends AppCompatActivity {
                     double balance = documentSnapshot.getDouble("aAmount");
                     tvAccountName.setText(name);
                     tvAccountType.setText(type);
-                    tvAccountBalance.setText(Double.toString(balance));
+                    tvAccountBalance.setText(Double.toString(balance) + "kr");
                     DocumentID = documentSnapshot.getId();
 
                 } else {
@@ -122,7 +124,6 @@ public class AccountDetails extends AppCompatActivity {
     private void setTitle(){
         String accNameForTitle;
         accNameForTitle = accName;
-
         this.setTitle("Details for account - " + accNameForTitle);
 
     }
@@ -150,16 +151,17 @@ public class AccountDetails extends AppCompatActivity {
             }
         };
     }
-
+/*
     private View.OnClickListener onClickDepositMoney = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Log.d(TAG, "onClickDeposit: called ");
             Intent intent = new Intent(AccountDetails.this, PopActivity.class);
+            intent.putExtra("accountID", DocumentID);
             startActivity(intent);
-
         }
     };
+    */
 
 
     //Runs when activity loads, and actions happens
@@ -177,6 +179,34 @@ public class AccountDetails extends AppCompatActivity {
         Log.d(TAG, "onStop: Called");
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
+        }
+    }
+
+    //Runs when activity is resumed.
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: Called ");
+        loadDataFromFirestore();
+        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+    }
+
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.btnDepositMoney:
+                Log.d(TAG, "onClickSwichCase: clicked ");
+                Intent intentDepo = new Intent(AccountDetails.this, PopActivity.class);
+                intentDepo.putExtra("accountID", DocumentID);
+                startActivity(intentDepo);
+                break;
+            case R.id.btnTransferMoney:
+                Log.d(TAG, "onClickSwichCase: clicked ");
+                Intent intentTransf = new Intent(AccountDetails.this, PopActivity.class);
+                intentTransf.putExtra("accountID", DocumentID);
+                startActivity(intentTransf);
+                break;
         }
     }
 }
