@@ -44,9 +44,10 @@ public class MainActivity extends AppCompatActivity {
     //Firebase Auth
     private FirebaseAuth mAuth;
     //Firebase
-   private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     private AccountAdapter adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -5,6 +5,7 @@ public class AccountModel {
     private double aAmount;
     private String aType;
 
+
     public AccountModel(String aName, double aAmount, String aType) {
         this.aName = aName;
         this.aAmount = aAmount;

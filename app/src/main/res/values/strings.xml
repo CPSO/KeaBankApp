@@ -12,4 +12,7 @@
     <string name="toastLoginError">Wrong mail or password</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_account_details">AccountDetails</string>
+    <string name="popup_title">Deposit Money</string>
+    <string name="popup_amount">Enter amount of money</string>
+    <string name="popup_btnSubmit">Submit</string>
 </resources>
