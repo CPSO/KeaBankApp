@@ -203,7 +203,7 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
                 break;
             case R.id.btnTransferMoney:
                 Log.d(TAG, "onClickSwichCase: clicked ");
-                Intent intentTransf = new Intent(AccountDetails.this, PopActivity.class);
+                Intent intentTransf = new Intent(AccountDetails.this, AccountTransfer.class);
                 intentTransf.putExtra("accountID", DocumentID);
                 startActivity(intentTransf);
                 break;
