@@ -25,7 +25,7 @@ public class AccountAdapter extends FirestoreRecyclerAdapter<AccountModel, Accou
     @Override
     protected void onBindViewHolder(@NotNull AccountHolder holder, int position, @NotNull AccountModel model){
         holder.tvAccName.setText(model.getaName());
-        holder.tvAccBalance.setText(Double.toString(model.getaAmount()) + " kr");
+        holder.tvAccBalance.setText(Double.toString(model.getaAmount()));
 
     }
 

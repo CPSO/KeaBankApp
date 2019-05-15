@@ -11,12 +11,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.MainActivity;
 import com.example.keabankapp.R;
 import com.example.keabankapp.adapter.AccountAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -43,6 +45,8 @@ public class AccountTransfer extends AppCompatActivity {
     EditText etAmount;
     Spinner spinnerFromAccount;
     private String accountID;
+    private String accountToID;
+    private double accountToBalance;
 
 
 
@@ -105,6 +109,7 @@ public class AccountTransfer extends AppCompatActivity {
         final CollectionReference accountRef = db.collection(userId).document("accounts").collection("accounts");
         final List<String> accounts = new ArrayList<>();
         final List<String> accountsID = new ArrayList<>();
+        final List<String> accountsBalance = new ArrayList<>();
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, accounts);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerToAccount.setAdapter(adapter);
@@ -115,8 +120,16 @@ public class AccountTransfer extends AppCompatActivity {
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         String accountName = document.getString("aName");
                         String accountID = document.getId();
+                        try{
+                            accountToBalance = document.getDouble("aAmount");
+                            Log.d(TAG, "onComplete: betting accountTo balance");
+                        } catch (Exception e){
+                            Log.d(TAG, "onComplete: error getting dubs");
+                        }
+
                         accounts.add(accountName);
                         accountsID.add(accountID);
+                        accountToID = accountID;
                     }
                     adapter.notifyDataSetChanged();
                 }
@@ -127,6 +140,8 @@ public class AccountTransfer extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG, "onItemSelected: spinner has chosen" + parent.getItemAtPosition(position).toString());
                 Log.d(TAG, "onItemSelected: spinner has picked id: " + accountsID.get(position));
+                Log.d(TAG, "onItemSelected: " + accountToID);
+                Log.d(TAG, "onItemSelected: " + accountToBalance);
             }
 
             @Override
@@ -137,7 +152,47 @@ public class AccountTransfer extends AppCompatActivity {
     }
     private void transferMoney(){
         //creates a referance to the collection in Firestore
-        DocumentReference accountRef = db.collection(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).document("accounts").collection("accounts").document(accountID);
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference accountFromRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
+        DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
+
+
+
+        double value;
+        String text = etAmount.getText().toString();
+
+        try {
+            /// = currentBalance + Double.parseDouble(text);
+            value = 10;
+            Log.d(TAG, "onClickSubmit: trying parse double " + value);
+
+            accountFromRef.update(
+                    "aAmount",value).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if(task.isSuccessful()){
+                        Toast.makeText(AccountTransfer.this, "Balance Added",
+                                Toast.LENGTH_SHORT).show();
+
+                    }
+                    else{
+                        Toast.makeText(AccountTransfer.this, "Failed!",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.d(TAG, "onFailure: " + e);
+                }
+            });
+
+        } catch (Exception e1){
+            e1.printStackTrace();
+            Log.d(TAG, "onClickSubmit: parsing failed ");
+        }
 
     }
 
