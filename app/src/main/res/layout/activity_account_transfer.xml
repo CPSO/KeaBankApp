@@ -33,7 +33,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:digits="2"
         android:ems="10"
         android:hint="100.00"
         android:inputType="number"

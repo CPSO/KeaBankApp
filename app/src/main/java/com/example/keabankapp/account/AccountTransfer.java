@@ -19,6 +19,7 @@ import com.example.keabankapp.R;
 import com.example.keabankapp.adapter.AccountAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -47,6 +48,10 @@ public class AccountTransfer extends AppCompatActivity {
     private String accountID;
     private String accountToID;
     private double accountToBalance;
+    private double accountFromBalance;
+    private boolean check1,check2;
+    
+
 
 
 
@@ -57,6 +62,7 @@ public class AccountTransfer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account_transfer);
         Log.d(TAG, "onCreateAccountTransfer: Called");
+        etAmount = findViewById(R.id.etTransfAmount);
         setupFirebaseAuth();
         init();
         setupSpinner();
@@ -109,7 +115,7 @@ public class AccountTransfer extends AppCompatActivity {
         final CollectionReference accountRef = db.collection(userId).document("accounts").collection("accounts");
         final List<String> accounts = new ArrayList<>();
         final List<String> accountsID = new ArrayList<>();
-        final List<String> accountsBalance = new ArrayList<>();
+        final List<Double> accountsBalance = new ArrayList<>();
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, accounts);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerToAccount.setAdapter(adapter);
@@ -120,16 +126,15 @@ public class AccountTransfer extends AppCompatActivity {
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         String accountName = document.getString("aName");
                         String accountID = document.getId();
-                        try{
-                            accountToBalance = document.getDouble("aAmount");
-                            Log.d(TAG, "onComplete: betting accountTo balance");
-                        } catch (Exception e){
-                            Log.d(TAG, "onComplete: error getting dubs");
-                        }
+                        double accountBalance = document.getDouble("aAmount");
+                        Log.d(TAG, "onComplete: " + accountBalance);
 
                         accounts.add(accountName);
                         accountsID.add(accountID);
+                        accountsBalance.add(accountBalance);
                         accountToID = accountID;
+                        accountToBalance = accountBalance;
+                        Log.d(TAG, "onComplete: "+ accountToBalance);
                     }
                     adapter.notifyDataSetChanged();
                 }
@@ -141,7 +146,8 @@ public class AccountTransfer extends AppCompatActivity {
                 Log.d(TAG, "onItemSelected: spinner has chosen" + parent.getItemAtPosition(position).toString());
                 Log.d(TAG, "onItemSelected: spinner has picked id: " + accountsID.get(position));
                 Log.d(TAG, "onItemSelected: " + accountToID);
-                Log.d(TAG, "onItemSelected: " + accountToBalance);
+                Log.d(TAG, "onItemSelected: " + accountsBalance.get(position));
+                accountToID = accountsID.get(position);
             }
 
             @Override
@@ -150,26 +156,105 @@ public class AccountTransfer extends AppCompatActivity {
             }
         });
     }
+
+    private void getTransferMoney(){
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference accountFromRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
+        Log.d(TAG, "transferMoney: from account with id: " + accountID);
+        DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
+        Log.d(TAG, "transferMoney: to account with id " + accountToID);
+
+
+        accountFromRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()){
+                    Log.d(TAG, "onSuccess: Called");
+                    accountFromBalance = documentSnapshot.getDouble("aAmount");
+                    Log.d(TAG, "onSuccess: WHAT IS THE BALANCE NOW" + accountFromBalance);
+                    check1 = true;
+
+
+                } else {
+                    Toast.makeText(AccountTransfer.this,"Error loading account details", Toast.LENGTH_LONG).show();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: " + e);
+
+            }
+        });
+
+
+        accountToRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()){
+                    Log.d(TAG, "onSuccess: Called");
+                    accountToBalance = documentSnapshot.getDouble("aAmount");
+                    Log.d(TAG, "onSuccess: get account to balance" + accountToBalance);
+                     check2 = true;
+                } else {
+                    Toast.makeText(AccountTransfer.this,"Error loading account details", Toast.LENGTH_LONG).show();
+
+                }
+
+            }
+        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, "onFailure: accountToRef");
+                    }
+                });
+
+       if (check1 != true && check2 != true){
+           Log.d(TAG, "getTransferMoney: TRUE, SENDING MONEY");
+
+       } else {
+           Log.d(TAG, "getTransferMoney: SOMMETHING WENT WRONG");
+           transferMoney();
+
+       }
+
+
+    }
+
     private void transferMoney(){
         //creates a referance to the collection in Firestore
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference accountFromRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
+        Log.d(TAG, "transferMoney: from account with id: " + accountID);
         DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
+        Log.d(TAG, "transferMoney: to account with id " + accountToID);
 
 
 
-        double value;
+
+
+
+
+
+
+        double valueFromET,newValue;
         String text = etAmount.getText().toString();
+        valueFromET = Double.parseDouble(text);
+        final double newBalance = (accountFromBalance - valueFromET);
+        final double toAccountBalance = (accountToBalance + valueFromET);
+        Log.d(TAG, "transferMoney: THIS IS THE BEFORE BALANCE" + accountFromBalance);
+        Log.d(TAG, "transferMoney: THIS IS A NEW BALANCE" + newBalance);
 
         try {
             /// = currentBalance + Double.parseDouble(text);
-            value = 10;
-            Log.d(TAG, "onClickSubmit: trying parse double " + value);
+            Log.d(TAG, "onClickSubmit: trying parse double " + valueFromET);
 
-            accountFromRef.update(
-                    "aAmount",value).addOnCompleteListener(new OnCompleteListener<Void>() {
+            accountToRef.update(
+                    "aAmount",toAccountBalance).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
@@ -189,12 +274,33 @@ public class AccountTransfer extends AppCompatActivity {
                 }
             });
 
+            accountFromRef.update("aAmount",newBalance).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "onSuccess: Account from balance" + newBalance);
+
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+
+                }
+            });
+
         } catch (Exception e1){
             e1.printStackTrace();
             Log.d(TAG, "onClickSubmit: parsing failed ");
         }
 
     }
+
+    private View.OnClickListener onClickSubmitTransf = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d(TAG, "onClickTransf: called");
+            getTransferMoney();
+        }
+    };
 
 
 
@@ -203,10 +309,10 @@ public class AccountTransfer extends AppCompatActivity {
 
     private void init(){
 
-        etAmount = findViewById(R.id.etTransfAmount);
         btnSubmit = findViewById(R.id.btnTransfSubmit);
         spinnerFromAccount = findViewById(R.id.spinnerFromAccount);
         spinnerToAccount = findViewById(R.id.spinnerToAccount);
+        btnSubmit.setOnClickListener(onClickSubmitTransf);
 
 
     }
