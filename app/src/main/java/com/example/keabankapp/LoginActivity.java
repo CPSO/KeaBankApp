@@ -24,7 +24,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText uMail, uPassword;
-    private Button bSignIn, bCreateUser;
+    private Button bSignIn, bCreateUser, bResetPw;
     private static final String TAG ="LoginActivity";
     //Firebase Auth
     private FirebaseAuth mAuth;
@@ -45,6 +45,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         bSignIn.setOnClickListener(onClickSignIn);
         //bSignIn.setOnClickListener(this);
         bCreateUser.setOnClickListener(onClickCreateUSer);
+        bResetPw = findViewById(R.id.btnResetPw);
+        bResetPw.setOnClickListener(OnClickResetPw);
         setupFirebaseAuth();                                //Runs the setupFirebaseAuth method
 
     }
@@ -121,6 +123,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         }
     };
+
+    private View.OnClickListener OnClickResetPw = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d(TAG, "onClickResetPw: Called");
+            Intent intent = new Intent(LoginActivity.this, ResetPasswordActivity.class);
+            startActivity(intent);
+            Log.d(TAG, "onClickResetPw: intent called ");
+        }
+    };
+
     private boolean isEmpty(String string){
         return string.equals("");
     }
@@ -149,6 +162,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
         };
     }
+
+
 
     @Override
     public void onStart() {
