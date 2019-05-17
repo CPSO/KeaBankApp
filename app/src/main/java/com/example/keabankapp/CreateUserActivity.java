@@ -57,7 +57,7 @@ public class CreateUserActivity extends AppCompatActivity {
             createUser(uMail.getText().toString(),uPassword.getText().toString());
             //Intent intent = new Intent(CreateUserActivity.this, LoginActivity.class);
             //startActivity(intent);
-            
+
         }
     };
 

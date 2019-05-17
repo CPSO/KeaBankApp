@@ -21,6 +21,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -49,7 +50,7 @@ public class AccountTransfer extends AppCompatActivity {
     private String accountToID;
     private double accountToBalance;
     private double accountFromBalance;
-    private boolean check1,check2;
+    private int check1,check2;
     
 
 
@@ -143,11 +144,11 @@ public class AccountTransfer extends AppCompatActivity {
         spinnerToAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "onItemSelected: spinner has chosen" + parent.getItemAtPosition(position).toString());
+                Log.d(TAG, "onItemSelected: spinner has chosen: " + parent.getItemAtPosition(position).toString());
                 Log.d(TAG, "onItemSelected: spinner has picked id: " + accountsID.get(position));
-                Log.d(TAG, "onItemSelected: " + accountToID);
-                Log.d(TAG, "onItemSelected: " + accountsBalance.get(position));
+                Log.d(TAG, "onItemSelected: spinner has picked account with balance:  " + accountsBalance.get(position));
                 accountToID = accountsID.get(position);
+
             }
 
             @Override
@@ -161,66 +162,48 @@ public class AccountTransfer extends AppCompatActivity {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference accountFromRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
-        Log.d(TAG, "transferMoney: from account with id: " + accountID);
         DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
-        Log.d(TAG, "transferMoney: to account with id " + accountToID);
 
 
-        accountFromRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                if (documentSnapshot.exists()){
-                    Log.d(TAG, "onSuccess: Called");
-                    accountFromBalance = documentSnapshot.getDouble("aAmount");
-                    Log.d(TAG, "onSuccess: WHAT IS THE BALANCE NOW" + accountFromBalance);
-                    check1 = true;
 
-
-                } else {
-                    Toast.makeText(AccountTransfer.this,"Error loading account details", Toast.LENGTH_LONG).show();
-                }
-            }
-        }).addOnFailureListener(new OnFailureListener() {
+        final Task<DocumentSnapshot> getAccountFrom = accountFromRef.get().addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.d(TAG, "onFailure: " + e);
-
+                Log.d(TAG, "onFailure: ");
+            }
+        }).addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                Log.d(TAG, "onSuccess: ");
+            }
+        });
+        final Task<DocumentSnapshot> getAccountTo = accountToRef.get().addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: ");
             }
         });
 
 
-        accountToRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        Tasks.whenAllComplete(getAccountFrom,getAccountTo).addOnCompleteListener(new OnCompleteListener<List<Task<?>>>() {
             @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                if (documentSnapshot.exists()){
-                    Log.d(TAG, "onSuccess: Called");
-                    accountToBalance = documentSnapshot.getDouble("aAmount");
-                    Log.d(TAG, "onSuccess: get account to balance" + accountToBalance);
-                     check2 = true;
-                } else {
-                    Toast.makeText(AccountTransfer.this,"Error loading account details", Toast.LENGTH_LONG).show();
+            public void onComplete(@NonNull Task<List<Task<?>>> task) {
+               if (getAccountFrom.getResult().exists() && getAccountTo.getResult().exists()){
+                   Log.d(TAG, "Task onComplete: Found accounts for transactions ");
+                   accountFromBalance = getAccountFrom.getResult().getDouble("aAmount");
+                   accountToBalance = getAccountTo.getResult().getDouble("aAmount");
+                   Log.d(TAG, "Task onComplete: Printing balance of accounts: ");
+                   Log.d(TAG, "onComplete: accountToBalance: " + accountToBalance);
+                   Log.d(TAG, "onComplete: accountFromBalance: " + accountFromBalance);
+                   transferMoney();
 
-                }
+               } else {
+                   Log.d(TAG, "Task onComplete: Failed to find accounts ");
+                   Toast.makeText(AccountTransfer.this,"No accounts found",Toast.LENGTH_LONG).show();
+               }
 
             }
-        })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "onFailure: accountToRef");
-                    }
-                });
-
-       if (check1 != true && check2 != true){
-           Log.d(TAG, "getTransferMoney: TRUE, SENDING MONEY");
-
-       } else {
-           Log.d(TAG, "getTransferMoney: SOMMETHING WENT WRONG");
-           transferMoney();
-
-       }
-
-
+        });
     }
 
     private void transferMoney(){
@@ -233,24 +216,19 @@ public class AccountTransfer extends AppCompatActivity {
         DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
         Log.d(TAG, "transferMoney: to account with id " + accountToID);
 
-
-
-
-
-
-
-
-
-        double valueFromET,newValue;
+        double valueFromET;
         String text = etAmount.getText().toString();
         valueFromET = Double.parseDouble(text);
         final double newBalance = (accountFromBalance - valueFromET);
         final double toAccountBalance = (accountToBalance + valueFromET);
-        Log.d(TAG, "transferMoney: THIS IS THE BEFORE BALANCE" + accountFromBalance);
-        Log.d(TAG, "transferMoney: THIS IS A NEW BALANCE" + newBalance);
 
+        //final Task<DocumentSnapshot> updateAccountFrom = accountFromRef.get();
+        //final Task<DocumentSnapshot> updateAccountTo = accountToRef.update("aAmount",toAccountBalance);
+
+        //Tasks.whenAllComplete()
+
+        /*
         try {
-            /// = currentBalance + Double.parseDouble(text);
             Log.d(TAG, "onClickSubmit: trying parse double " + valueFromET);
 
             accountToRef.update(
@@ -291,6 +269,7 @@ public class AccountTransfer extends AppCompatActivity {
             e1.printStackTrace();
             Log.d(TAG, "onClickSubmit: parsing failed ");
         }
+        */
 
     }
 
