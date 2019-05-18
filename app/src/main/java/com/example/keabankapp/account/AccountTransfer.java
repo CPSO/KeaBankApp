@@ -30,6 +30,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
+import com.google.firestore.v1beta1.WriteResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -188,6 +190,10 @@ public class AccountTransfer extends AppCompatActivity {
         Tasks.whenAllComplete(getAccountFrom,getAccountTo).addOnCompleteListener(new OnCompleteListener<List<Task<?>>>() {
             @Override
             public void onComplete(@NonNull Task<List<Task<?>>> task) {
+                double valueFromET;
+                String text = etAmount.getText().toString();
+                valueFromET = Double.parseDouble(text);
+                
                if (getAccountFrom.getResult().exists() && getAccountTo.getResult().exists()){
                    Log.d(TAG, "Task onComplete: Found accounts for transactions ");
                    accountFromBalance = getAccountFrom.getResult().getDouble("aAmount");
@@ -195,7 +201,14 @@ public class AccountTransfer extends AppCompatActivity {
                    Log.d(TAG, "Task onComplete: Printing balance of accounts: ");
                    Log.d(TAG, "onComplete: accountToBalance: " + accountToBalance);
                    Log.d(TAG, "onComplete: accountFromBalance: " + accountFromBalance);
-                   transferMoney();
+                    if (accountFromBalance < valueFromET ){
+                        Log.d(TAG, "onComplete: Amount to hight");
+                        Toast.makeText(AccountTransfer.this,"Transfer amount to hight",Toast.LENGTH_LONG).show();
+                    }else {
+                        Log.d(TAG, "onComplete: calling transfer ");
+                        transferMoney();
+                        Toast.makeText(AccountTransfer.this,"sending money", Toast.LENGTH_LONG).show();
+                    }
 
                } else {
                    Log.d(TAG, "Task onComplete: Failed to find accounts ");
@@ -222,8 +235,25 @@ public class AccountTransfer extends AppCompatActivity {
         final double newBalance = (accountFromBalance - valueFromET);
         final double toAccountBalance = (accountToBalance + valueFromET);
 
-        //final Task<DocumentSnapshot> updateAccountFrom = accountFromRef.get();
-        //final Task<DocumentSnapshot> updateAccountTo = accountToRef.update("aAmount",toAccountBalance);
+
+
+        WriteBatch batch = db.batch();
+        batch.update(accountFromRef,"aAmount",newBalance);
+        batch.update(accountToRef,"aAmount",toAccountBalance);
+
+        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                    Log.d(TAG, "onComplete: Finish money transfer");
+                    finish();
+                } else {
+                    Log.d(TAG, "onComplete: Something went wrong" + task.getException());
+                }
+            }
+        });
+
+        finish();
 
         //Tasks.whenAllComplete()
 
