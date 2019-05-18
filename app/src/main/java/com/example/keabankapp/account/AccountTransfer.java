@@ -1,10 +1,15 @@
 package com.example.keabankapp.account;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.renderscript.ScriptGroup;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,8 +39,10 @@ import com.google.firebase.firestore.WriteBatch;
 import com.google.firestore.v1beta1.WriteResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 public class AccountTransfer extends AppCompatActivity {
     private static final String TAG = "AccountTransfer";
@@ -48,11 +55,9 @@ public class AccountTransfer extends AppCompatActivity {
     Button btnSubmit;
     EditText etAmount;
     Spinner spinnerFromAccount;
-    private String accountID;
-    private String accountToID;
-    private double accountToBalance;
-    private double accountFromBalance;
-    private int check1,check2;
+    private String accountID,accountToID;
+    private double accountToBalance,accountFromBalance;
+    private SparseIntArray nemCode = new SparseIntArray();
     
 
 
@@ -70,6 +75,7 @@ public class AccountTransfer extends AppCompatActivity {
         init();
         setupSpinner();
         getIncomingIntent();
+        setupNemCode();
     }
     //Checks the state of the user that is sign in.
     //ether the user is active or is signing out
@@ -192,31 +198,74 @@ public class AccountTransfer extends AppCompatActivity {
             public void onComplete(@NonNull Task<List<Task<?>>> task) {
                 double valueFromET;
                 String text = etAmount.getText().toString();
-                valueFromET = Double.parseDouble(text);
-                
-               if (getAccountFrom.getResult().exists() && getAccountTo.getResult().exists()){
-                   Log.d(TAG, "Task onComplete: Found accounts for transactions ");
-                   accountFromBalance = getAccountFrom.getResult().getDouble("aAmount");
-                   accountToBalance = getAccountTo.getResult().getDouble("aAmount");
-                   Log.d(TAG, "Task onComplete: Printing balance of accounts: ");
-                   Log.d(TAG, "onComplete: accountToBalance: " + accountToBalance);
-                   Log.d(TAG, "onComplete: accountFromBalance: " + accountFromBalance);
-                    if (accountFromBalance < valueFromET ){
-                        Log.d(TAG, "onComplete: Amount to hight");
-                        Toast.makeText(AccountTransfer.this,"Transfer amount to hight",Toast.LENGTH_LONG).show();
-                    }else {
-                        Log.d(TAG, "onComplete: calling transfer ");
-                        transferMoney();
-                        Toast.makeText(AccountTransfer.this,"sending money", Toast.LENGTH_LONG).show();
+                if (text.isEmpty()) {
+                    Log.d(TAG, "onComplete: INDPUT IS EMPTY");
+                } else {
+                    valueFromET = Double.parseDouble(text);
+                    if (getAccountFrom.getResult().exists() && getAccountTo.getResult().exists()) {
+                        Log.d(TAG, "Task onComplete: Found accounts for transactions ");
+                        accountFromBalance = getAccountFrom.getResult().getDouble("aAmount");
+                        accountToBalance = getAccountTo.getResult().getDouble("aAmount");
+                        Log.d(TAG, "Task onComplete: Printing balance of accounts: ");
+                        Log.d(TAG, "onComplete: accountToBalance: " + accountToBalance);
+                        Log.d(TAG, "onComplete: accountFromBalance: " + accountFromBalance);
+                        if (accountFromBalance < valueFromET) {
+                            Log.d(TAG, "onComplete: Amount to hight");
+                            Toast.makeText(AccountTransfer.this, "Transfer amount to hight", Toast.LENGTH_LONG).show();
+                        } else {
+                            Log.d(TAG, "onComplete: calling transfer ");
+                            nemID();
+                        }
+
+                    } else {
+                        Log.d(TAG, "Task onComplete: Failed to find accounts ");
+                        Toast.makeText(AccountTransfer.this, "No accounts found", Toast.LENGTH_LONG).show();
                     }
 
-               } else {
-                   Log.d(TAG, "Task onComplete: Failed to find accounts ");
-                   Toast.makeText(AccountTransfer.this,"No accounts found",Toast.LENGTH_LONG).show();
-               }
-
+                }
             }
         });
+
+    }
+
+    private void nemID(){
+        int size = nemCode.size();
+        Random r = new Random();
+        int randomNumber = r.nextInt(size);
+        int selectedKey = nemCode.keyAt(randomNumber);
+        final int selectedValueInt = nemCode.valueAt(randomNumber);
+        final String selectedValueString = Integer.toString(selectedValueInt);
+        Log.d(TAG, "nemID: Another randommer values: " + randomNumber);
+        Log.d(TAG, "nemID: Selecting key: " + selectedKey);
+        Log.d(TAG, "nemID: Selecting key: " + selectedValueInt);
+
+
+        final EditText nemidInputText = new EditText(this);
+        nemidInputText.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("NEM ID Code")
+                .setMessage("Enter code for key: " + selectedKey)
+                .setView(nemidInputText)
+                .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String nemIDValue = String.valueOf(nemidInputText.getText());
+                        if (nemIDValue.equals(selectedValueString)){
+                            Log.d(TAG, "onClick: " + nemIDValue + " = " + selectedValueString);
+                            Toast.makeText(AccountTransfer.this,"Sending Money", Toast.LENGTH_LONG).show();
+                            transferMoney();
+
+                        } else {
+                            Log.d(TAG, "onClick: " + nemIDValue + " != " + selectedValueString);
+                            Toast.makeText(AccountTransfer.this,"Wrong Value", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+        dialog.show();
+
     }
 
     private void transferMoney(){
@@ -313,7 +362,13 @@ public class AccountTransfer extends AppCompatActivity {
 
 
 
-
+    private void setupNemCode(){
+        //#Key - Value
+        nemCode.put(1278,3298);
+        nemCode.put(4565,9137);
+        nemCode.put(8264,7304);
+        nemCode.put(7615,6931);
+    }
 
 
     private void init(){
