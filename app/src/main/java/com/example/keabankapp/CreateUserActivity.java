@@ -16,13 +16,16 @@ import com.example.keabankapp.account.AccountCreate;
 import com.example.keabankapp.models.AccountModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 
 public class CreateUserActivity extends AppCompatActivity {
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
     //Firebase Auth
     private FirebaseAuth mAuth;
     //Firebase
@@ -62,6 +65,7 @@ public class CreateUserActivity extends AppCompatActivity {
     };
 
     private void createUser(String email, String password) {
+
         Log.d(TAG, "createUser:" + email);
         if (!validateForm()) {
             return;
@@ -75,20 +79,34 @@ public class CreateUserActivity extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+                            String userId = user.getUid();
 
-                            String aName = "Account";
+                            String aName = "Default account";
+                            String aName2 = "Budget account";
                             double aAmount = 0.00;
                             String aType = "default";
+                            String aType2 = "budget";
 
-                            String userId = user.getUid();
-                            DocumentReference accountRef = FirebaseFirestore.getInstance()
+
+                            DocumentReference accountRefDef = FirebaseFirestore.getInstance()
                                     .collection(userId).document("accounts").collection("accounts").document();
-                            accountRef.set(new AccountModel(aName,aAmount,aType));
+                            DocumentReference accountRefBud = FirebaseFirestore.getInstance()
+                                    .collection(userId).document("accounts").collection("accounts").document();
+
+
+
+                            accountRefDef.set(new AccountModel(aName,aAmount,aType));
+                            accountRefBud.set(new AccountModel(aName2,aAmount,aType2));
+                            finish();
+
+
 
                         } else {
                             // If sign in fails, display a message to the user.
+                            String error = task.getException().toString();
+                            String errorPrint = error.substring(error.lastIndexOf(":") + 1);
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(CreateUserActivity.this, "Authentication failed.",
+                            Toast.makeText(CreateUserActivity.this, errorPrint,
                                     Toast.LENGTH_SHORT).show();
                         }
 
