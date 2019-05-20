@@ -18,11 +18,13 @@ import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.R;
 import com.example.keabankapp.models.AccountTransactionModel;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.annotations.NotNull;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -132,30 +134,10 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
 
     //sends a query to the Firestore based of the courseListRef, and order it by courseName
     private void setUpRecyclerView() {
-        Query query = accountTransRef.orderBy("tTimestramp", Query.Direction.ASCENDING);
-        FirestoreRecyclerOptions<AccountTransactionModel> options = new FirestoreRecyclerOptions.Builder<AccountTransactionModel>()
-                .setQuery(query, AccountTransactionModel.class)
-                .build();
 
 
-        //binding to the recycler view
-        final RecyclerView recyclerView = findViewById(R.id.rwTransactionList);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
 
-        //Sets click listener on the recyclerView.
-        //gets the information on each element on the list
-        //fills out the information to the intent and sends it to the CourseRatingActivity.
-        /*
-        adapter.setOnItemClickListener(new AccountAdapter.onItemClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
-                Toast.makeText(AccountDetails.this,getString(R.string.toastSelectPosition) + position + getString(R.string.toastSelectID) + id, Toast.LENGTH_SHORT).show();
-            }
-        });
-        */
+
     }
 
 /*
