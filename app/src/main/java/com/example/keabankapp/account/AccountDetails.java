@@ -15,29 +15,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.keabankapp.LoginActivity;
-import com.example.keabankapp.MainActivity;
 import com.example.keabankapp.R;
-import com.example.keabankapp.adapter.AccountAdapter;
-import com.example.keabankapp.adapter.TransactionAdapter;
-import com.example.keabankapp.models.AccountModel;
 import com.example.keabankapp.models.AccountTransactionModel;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Objects;
 
@@ -148,7 +137,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
                 .setQuery(query, AccountTransactionModel.class)
                 .build();
 
-            adapter = new TransactionAdapter(options);
 
         //binding to the recycler view
         final RecyclerView recyclerView = findViewById(R.id.rwTransactionList);
