@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,8 +17,12 @@ import android.widget.Toast;
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.MainActivity;
 import com.example.keabankapp.R;
+import com.example.keabankapp.adapter.AccountAdapter;
+import com.example.keabankapp.adapter.TransactionAdapter;
 import com.example.keabankapp.models.AccountModel;
 import com.example.keabankapp.models.AccountTransactionModel;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -29,8 +35,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.Objects;
 
 
 public class AccountDetails extends AppCompatActivity implements View.OnClickListener {
@@ -45,8 +54,13 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     private String pathForAccount;
     private TextView tvAccountName, tvAccountType, tvAccountBalance,tvTransactions;
     private String DocumentID;
+    private FirebaseRecyclerAdapter adapter;
+    private RecyclerView recyclerView;
     Button btnDepositMoney, btnTransferMoney;
     String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private CollectionReference accountTransRef = db.collection(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).document("accounts")
+            .collection("accounts").document(DocumentID).collection("transactions");
+
 
 
 
@@ -65,10 +79,9 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         tvAccountBalance = findViewById(R.id.tvADAmount);
         btnDepositMoney = findViewById(R.id.btnDepositMoney);
         btnTransferMoney = findViewById(R.id.btnTransferMoney);
-        tvTransactions = findViewById(R.id.tvTransactions);
+        //tvTransactions = findViewById(R.id.tvTransactions);
         btnTransferMoney.setOnClickListener(this);
         btnDepositMoney.setOnClickListener(this);
-        loadTransactions();
 
     }
 
@@ -126,6 +139,38 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
                 });
     }
 
+
+
+    //sends a query to the Firestore based of the courseListRef, and order it by courseName
+    private void setUpRecyclerView() {
+        Query query = accountTransRef.orderBy("tTimestramp", Query.Direction.ASCENDING);
+        FirestoreRecyclerOptions<AccountTransactionModel> options = new FirestoreRecyclerOptions.Builder<AccountTransactionModel>()
+                .setQuery(query, AccountTransactionModel.class)
+                .build();
+
+            adapter = new TransactionAdapter(options);
+
+        //binding to the recycler view
+        final RecyclerView recyclerView = findViewById(R.id.rwTransactionList);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
+        //Sets click listener on the recyclerView.
+        //gets the information on each element on the list
+        //fills out the information to the intent and sends it to the CourseRatingActivity.
+        /*
+        adapter.setOnItemClickListener(new AccountAdapter.onItemClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
+                Toast.makeText(AccountDetails.this,getString(R.string.toastSelectPosition) + position + getString(R.string.toastSelectID) + id, Toast.LENGTH_SHORT).show();
+            }
+        });
+        */
+    }
+
+/*
     private void loadTransactions(){
             db.collection(userId).document("accounts")
                 .collection("accounts").document(accountID).collection("transactions").get()
@@ -152,31 +197,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
             });
 
     }
-/*
-    public void loadNotes(View v) {
-        notebookRef.get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                        String data = "";
-
-                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                            Note note = documentSnapshot.toObject(Note.class);
-                            note.setDocumentId(documentSnapshot.getId());
-
-                            String documentId = note.getDocumentId();
-                            String title = note.getTitle();
-                            String description = note.getDescription();
-
-                            data += "ID: " + documentId
-                                    + "\nTitle: " + title + "\nDescription: " + description + "\n\n";
-                        }
-
-                        textViewData.setText(data);
-                    }
-                });
-    }
-
 */
     private void setTitle(){
         String accNameForTitle;
@@ -227,7 +247,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         super.onStart();
         Log.d(TAG, "onStart: Called ");
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
-        loadTransactions();
 
     }
 
@@ -248,7 +267,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         Log.d(TAG, "onResume: Called ");
         loadDataFromFirestore();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
-        loadTransactions();
 
     }
 

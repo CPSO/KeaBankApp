@@ -118,7 +118,7 @@
         app:layout_constraintTop_toBottomOf="@+id/tvADAmount" />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/scwTransactions"
+        android:id="@+id/rwTransactionList"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"

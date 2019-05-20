@@ -22,7 +22,7 @@
 
 
         <TextView
-            android:id="@+id/list_title"
+            android:id="@+id/trans_list_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -35,16 +35,16 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/list_desc"
+            android:id="@+id/trans_list_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Description"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/list_title" />
+            app:layout_constraintTop_toBottomOf="@+id/trans_list_amount" />
 
         <TextView
-            android:id="@+id/list_type"
+            android:id="@+id/trans_list_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 

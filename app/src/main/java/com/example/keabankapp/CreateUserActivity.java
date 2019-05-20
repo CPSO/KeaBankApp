@@ -106,7 +106,7 @@ public class CreateUserActivity extends AppCompatActivity {
                             String error = task.getException().toString();
                             String errorPrint = error.substring(error.lastIndexOf(":") + 1);
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(CreateUserActivity.this, errorPrint,
+                            Toast.makeText(CreateUserActivity.this, task.getException().getMessage(),
                                     Toast.LENGTH_SHORT).show();
                         }
 
