@@ -16,9 +16,11 @@ import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.MainActivity;
 import com.example.keabankapp.R;
 import com.example.keabankapp.models.AccountModel;
+import com.example.keabankapp.models.AccountTransactionModel;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -41,9 +43,11 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     private String accName;
     private String accountID;
     private String pathForAccount;
-    private TextView tvAccountName, tvAccountType, tvAccountBalance;
+    private TextView tvAccountName, tvAccountType, tvAccountBalance,tvTransactions;
     private String DocumentID;
     Button btnDepositMoney, btnTransferMoney;
+    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -61,8 +65,11 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         tvAccountBalance = findViewById(R.id.tvADAmount);
         btnDepositMoney = findViewById(R.id.btnDepositMoney);
         btnTransferMoney = findViewById(R.id.btnTransferMoney);
+        tvTransactions = findViewById(R.id.tvTransactions);
         btnTransferMoney.setOnClickListener(this);
         btnDepositMoney.setOnClickListener(this);
+        loadTransactions();
+
     }
 
     //Graps the intent send from the MainActivity and binds the document collections
@@ -91,7 +98,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         Log.d(TAG, "setDataFromFirestore: " + FirebaseAuth.getInstance().getCurrentUser());
         Log.d(TAG, "loadDataFromFirestore: called account id with: " + accountID);
 
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         db.collection(userId).document("accounts").collection("accounts").document(accountID)
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
@@ -120,7 +126,58 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
                 });
     }
 
+    private void loadTransactions(){
+            db.collection(userId).document("accounts")
+                .collection("accounts").document(accountID).collection("transactions").get()
+                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                @Override
+                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                    String data = "";
+                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                        AccountTransactionModel model = documentSnapshot.toObject(AccountTransactionModel.class);
+                        model.settDocumentId(documentSnapshot.getId());
+                        String docID = model.gettDocumentId();
+                        String type = model.gettType();
+                        double amount = model.gettAmount();
+                        Timestamp timestamp = model.gettTimestamp();
+                        Log.d(TAG, "onSuccess: " + docID);
 
+                        data += "ID: " + docID + " \ntype: " + type + " \namount: " + amount + " \ntimestamp: " + timestamp;
+
+
+                    }
+                    tvTransactions.setText(data);
+
+                }
+            });
+
+    }
+/*
+    public void loadNotes(View v) {
+        notebookRef.get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        String data = "";
+
+                        for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                            Note note = documentSnapshot.toObject(Note.class);
+                            note.setDocumentId(documentSnapshot.getId());
+
+                            String documentId = note.getDocumentId();
+                            String title = note.getTitle();
+                            String description = note.getDescription();
+
+                            data += "ID: " + documentId
+                                    + "\nTitle: " + title + "\nDescription: " + description + "\n\n";
+                        }
+
+                        textViewData.setText(data);
+                    }
+                });
+    }
+
+*/
     private void setTitle(){
         String accNameForTitle;
         accNameForTitle = accName;
@@ -170,6 +227,8 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         super.onStart();
         Log.d(TAG, "onStart: Called ");
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+        loadTransactions();
+
     }
 
     //runs when activity stops.
@@ -189,6 +248,8 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         Log.d(TAG, "onResume: Called ");
         loadDataFromFirestore();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
+        loadTransactions();
+
     }
 
 
