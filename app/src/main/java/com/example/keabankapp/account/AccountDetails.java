@@ -16,6 +16,9 @@ import android.widget.Toast;
 
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.R;
+import com.example.keabankapp.adapter.AccountAdapter;
+import com.example.keabankapp.adapter.AccountTransferAdapter;
+import com.example.keabankapp.models.AccountModel;
 import com.example.keabankapp.models.AccountTransactionModel;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
@@ -24,7 +27,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.annotations.NotNull;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -45,17 +47,14 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     private String pathForAccount;
     private TextView tvAccountName, tvAccountType, tvAccountBalance,tvTransactions;
     private String DocumentID;
-    private FirebaseRecyclerAdapter adapter;
+    private AccountTransferAdapter adapter;
     private RecyclerView recyclerView;
     Button btnDepositMoney, btnTransferMoney;
     String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-    private CollectionReference accountTransRef = db.collection(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).document("accounts")
-            .collection("accounts").document(DocumentID).collection("transactions");
 
 
 
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,12 +64,12 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         setupFirebaseAuth();
         setTitle();
         loadDataFromFirestore();
+        setUpRecyclerView();
         tvAccountName = findViewById(R.id.tvADName);
         tvAccountType = findViewById(R.id.tvADType);
         tvAccountBalance = findViewById(R.id.tvADAmount);
         btnDepositMoney = findViewById(R.id.btnDepositMoney);
         btnTransferMoney = findViewById(R.id.btnTransferMoney);
-        //tvTransactions = findViewById(R.id.tvTransactions);
         btnTransferMoney.setOnClickListener(this);
         btnDepositMoney.setOnClickListener(this);
 
@@ -116,6 +115,8 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
                     tvAccountBalance.setText(Double.toString(balance) + "kr");
                     DocumentID = documentSnapshot.getId();
 
+
+
                 } else {
                     Toast.makeText(AccountDetails.this,"Error loading account details", Toast.LENGTH_LONG).show();
                 }
@@ -134,6 +135,23 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
 
     //sends a query to the Firestore based of the courseListRef, and order it by courseName
     private void setUpRecyclerView() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        CollectionReference accountTransRef = db.collection(userId).document("accounts")
+                .collection("accounts").document(accountID).collection("transactions");
+
+        Query query = accountTransRef.orderBy("tTimestamp",Query.Direction.DESCENDING);
+        FirestoreRecyclerOptions<AccountTransactionModel> options = new FirestoreRecyclerOptions.Builder<AccountTransactionModel>()
+                .setQuery(query, AccountTransactionModel.class)
+                .build();
+
+        adapter = new AccountTransferAdapter(options);
+
+        RecyclerView recyclerView = findViewById(R.id.rwTransactionList);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
 
 
 
@@ -216,6 +234,7 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "onStart: Called ");
+        adapter.startListening();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
 
     }
@@ -225,6 +244,7 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "onStop: Called");
+        adapter.stopListening();
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
         }
@@ -235,6 +255,7 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: Called ");
+        adapter.startListening();
         loadDataFromFirestore();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
 
