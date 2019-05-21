@@ -14,7 +14,10 @@ import android.widget.Toast;
 
 import com.example.keabankapp.account.AccountCreate;
 import com.example.keabankapp.models.AccountModel;
+import com.example.keabankapp.models.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthResult;
@@ -33,7 +36,7 @@ public class CreateUserActivity extends AppCompatActivity {
     //Log TAG
     private static final int ERROR_DIALOG_REQUEST = 9001;
     EditText uFName, uLName, uMail, uPhone, uPassword;
-    EditText uAdress, uZipCode;
+    //EditText uAdress, uZipCode;
     TextView bankLocCPH, bankLocOds;
     Button btnCreateUser;
     private static final String TAG = "CreateUserActivity";
@@ -64,7 +67,7 @@ public class CreateUserActivity extends AppCompatActivity {
         }
     };
 
-    private void createUser(String email, String password) {
+    private void createUser(final String email, String password) {
 
         Log.d(TAG, "createUser:" + email);
         if (!validateForm()) {
@@ -74,7 +77,7 @@ public class CreateUserActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
+                    public void onComplete(@NonNull final Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
@@ -86,6 +89,18 @@ public class CreateUserActivity extends AppCompatActivity {
                             double aAmount = 0.00;
                             String aType = "default";
                             String aType2 = "budget";
+                            String uName = "Bob";
+                            String uLastName = "Bobby";
+                            int uAge = 50;
+                            String uEmail = email;
+                            int uPhone = 42952142;
+                            String uAdress = "Vejnavn 21";
+                            int uZipCode = 4215;
+                            String uFillial = "københavn";
+
+
+                            DocumentReference userDetails = FirebaseFirestore.getInstance().collection(userId).document("user");
+
 
 
                             DocumentReference accountRefDef = FirebaseFirestore.getInstance()
@@ -97,7 +112,18 @@ public class CreateUserActivity extends AppCompatActivity {
 
                             accountRefDef.set(new AccountModel(aName,aAmount,aType));
                             accountRefBud.set(new AccountModel(aName2,aAmount,aType2));
-                            finish();
+                            userDetails.set(new UserModel(uName,uLastName,uAge,uEmail,uPhone,uAdress,uZipCode,uFillial)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    Log.d(TAG, "onSuccess: Creating user information sucsessful");
+                                    finish();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.d(TAG, "onFailure: Creating user information failed" + task.getException());
+                                }
+                            });
 
 
 
@@ -154,8 +180,8 @@ public class CreateUserActivity extends AppCompatActivity {
         uLName = findViewById(R.id.etUserLName);
         uMail = findViewById(R.id.etUserEmail);
         uPhone = findViewById(R.id.etUserPhone);
-        uAdress = findViewById(R.id.etAdressName);
-        uZipCode = findViewById(R.id.etZipCode);
+       // uAdress = findViewById(R.id.etAdressName);
+        //uZipCode = findViewById(R.id.etZipCode);
         bankLocCPH = findViewById(R.id.tvCPH);
         bankLocOds = findViewById(R.id.tvOdense);
         btnCreateUser = findViewById(R.id.btnSignUp);
