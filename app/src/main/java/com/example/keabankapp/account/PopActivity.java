@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.icu.util.ValueIterator;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -17,16 +18,21 @@ import android.widget.Toast;
 
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.R;
+import com.example.keabankapp.models.AccountTransactionModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 
+import java.util.Date;
 import java.util.Objects;
 
 
@@ -102,18 +108,41 @@ public class PopActivity extends Activity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         DocumentReference accountRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
+        final CollectionReference accountTransaction = db.collection(userId).document("accounts").collection("accounts").document(accountID)
+                                                .collection("transactions");
+
 
         double value;
+        double valueInserted;
         String text = etAmount.getText().toString();
         try {
             value = currentBalance + Double.parseDouble(text);
+            valueInserted = Double.parseDouble(text);
+
             Log.d(TAG, "onClickSubmit: trying parse double " + value);
 
+            final String tType = "deposit";
+            final Timestamp tTimestamp = Timestamp.now();
+            final double tAmount = valueInserted;
+            final String tDocumentId = accountID;
+            final String tAccountToId = "";
             accountRef.update(
                     "aAmount",value).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
-                public void onComplete(@NonNull Task<Void> task) {
+                public void onComplete(@NonNull final Task<Void> task) {
                     if(task.isSuccessful()){
+                        accountTransaction.add(new AccountTransactionModel(tType,tAccountToId,tDocumentId,tTimestamp,tAmount)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            @Override
+                            public void onSuccess(DocumentReference documentReference) {
+                                Log.d(TAG, "onSuccess: Added Transaction History");
+                                finish();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.d(TAG, "onFailure: History Failed to be added");
+                            }
+                        });
                         Toast.makeText(PopActivity.this, "Balance Added",
                                 Toast.LENGTH_SHORT).show();
 
@@ -124,6 +153,7 @@ public class PopActivity extends Activity {
                     }
                 }
             });
+
 
         } catch (Exception e1){
             e1.printStackTrace();
@@ -140,7 +170,6 @@ public class PopActivity extends Activity {
         public void onClick(View v) {
             Log.d(TAG, "onClickSubmit: called");
             updateBalance();
-            finish();
         }
     };
 

@@ -22,11 +22,13 @@ import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.MainActivity;
 import com.example.keabankapp.R;
 import com.example.keabankapp.adapter.AccountAdapter;
+import com.example.keabankapp.models.AccountTransactionModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -58,6 +60,7 @@ public class AccountTransfer extends AppCompatActivity {
     private String accountID,accountToID;
     private double accountToBalance,accountFromBalance;
     private SparseIntArray nemCode = new SparseIntArray();
+    private double valueFromET;
     
 
 
@@ -278,12 +281,11 @@ public class AccountTransfer extends AppCompatActivity {
         DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
         Log.d(TAG, "transferMoney: to account with id " + accountToID);
 
-        double valueFromET;
+
         String text = etAmount.getText().toString();
         valueFromET = Double.parseDouble(text);
         final double newBalance = (accountFromBalance - valueFromET);
         final double toAccountBalance = (accountToBalance + valueFromET);
-
 
 
         WriteBatch batch = db.batch();
@@ -295,6 +297,7 @@ public class AccountTransfer extends AppCompatActivity {
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()){
                     Log.d(TAG, "onComplete: Finish money transfer");
+                    makeTransactionHistory();
                     finish();
                 } else {
                     Log.d(TAG, "onComplete: Something went wrong" + task.getException());
@@ -349,6 +352,48 @@ public class AccountTransfer extends AppCompatActivity {
             Log.d(TAG, "onClickSubmit: parsing failed ");
         }
         */
+
+    }
+    private void makeTransactionHistory(){
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        final CollectionReference accountTransactionFrom = db.collection(userId).document("accounts").collection("accounts").document(accountID)
+                .collection("transactions");
+        final CollectionReference accountTransactionTo = db.collection(userId).document("accounts").collection("accounts").document(accountToID)
+                .collection("transactions");
+
+        final String tType = "transfer";
+        final Timestamp tTimestamp = Timestamp.now();
+        final double tAmount = valueFromET;
+        final String tDocumentId = accountID;
+        final String tAccountToId = accountToID;
+
+        final Task<DocumentReference> addAccountTransfer = accountTransactionFrom.add(new AccountTransactionModel(tType,tAccountToId,tDocumentId,tTimestamp,tAmount)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.d(TAG, "onSuccess: addAccountTransfer");
+            }
+        });
+        final Task<DocumentReference> addAccountTransferTo = accountTransactionTo.add(new AccountTransactionModel(tType,tAccountToId,tDocumentId,tTimestamp,tAmount)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.d(TAG, "onSuccess: addAccountTransferTo");
+            }
+        });
+
+        Tasks.whenAllComplete(addAccountTransfer,addAccountTransferTo).addOnCompleteListener(new OnCompleteListener<List<Task<?>>>() {
+            @Override
+            public void onComplete(@NonNull Task<List<Task<?>>> task) {
+                Log.d(TAG, "onComplete: All Transfer Notes added");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: some Transfer notes failed");
+            }
+        });
+
+
 
     }
 

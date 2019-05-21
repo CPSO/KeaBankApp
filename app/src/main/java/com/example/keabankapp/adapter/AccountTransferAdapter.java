@@ -23,8 +23,7 @@ public class AccountTransferAdapter extends FirestoreRecyclerAdapter<AccountTran
     protected void onBindViewHolder(@NonNull TransferHolder holder, int position, @NonNull AccountTransactionModel model) {
         holder.tvTransListAmount.setText(Double.toString(model.gettAmount()));
         holder.tvTransListType.setText(model.gettType());
-        holder.tvTransListTime.setText(model.gettTimestamp().toString());
-
+        holder.tvTransListTime.setText(model.gettTimestamp().toDate().toString());
     }
 
     @NonNull

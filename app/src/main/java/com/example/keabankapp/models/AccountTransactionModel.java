@@ -2,6 +2,7 @@ package com.example.keabankapp.models;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.ServerTimestamp;
 
 public class AccountTransactionModel {
     private String tType,tAccountToId, tDocumentId;
@@ -9,6 +10,14 @@ public class AccountTransactionModel {
     private double tAmount;
 
     public AccountTransactionModel() {
+    }
+
+    public AccountTransactionModel(String tType, String tAccountToId, String tDocumentId, Timestamp tTimestamp, double tAmount) {
+        this.tType = tType;
+        this.tAccountToId = tAccountToId;
+        this.tDocumentId = tDocumentId;
+        this.tTimestamp = tTimestamp;
+        this.tAmount = tAmount;
     }
 
     public String gettType() {

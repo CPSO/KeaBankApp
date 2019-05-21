@@ -151,11 +151,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
-
-
-
-
-
     }
 
 /*
