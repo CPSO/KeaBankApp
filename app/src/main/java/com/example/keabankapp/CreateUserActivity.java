@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.example.keabankapp.models.AccountModel;
 import com.example.keabankapp.models.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -78,57 +79,9 @@ public class CreateUserActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            String userId = user.getUid();
-
-                            final DocumentReference userDetails = db.collection(userId).document("user");
-                            DocumentReference accountRefDef = db.collection(userId).document("accounts")
-                                    .collection("accounts").document();
-                            DocumentReference accountRefBud = db.collection(userId).document("accounts")
-                                    .collection("accounts").document();
-
-
-                            String aName = "Default account";
-                            String aName2 = "Budget account";
-                            double aAmount = 0.00;
-                            String aType = "default";
-                            String aType2 = "budget";
-                            final String uName = uFName.getText().toString();
-                            final String uLastName = uLName.getText().toString();
-                            final int uAge = Integer.parseInt(uUserAge.getText().toString());
-                            final String uEmail = email;
-                            final int uPhone = Integer.parseInt(uPhoneNumber.getText().toString());
-                            final String uAddress = uHomeAddress.getText().toString();
-                            final int uZipCode = Integer.parseInt(uAddressZipcode.getText().toString());
-                            final String uFillial = uSelectedFilial;
-
-                            WriteBatch batch = db.batch();
-
-                            batch.set(userDetails,new UserModel(uName,uLastName,uAge,uEmail,uPhone,uAddress,uZipCode,uFillial));
-                            batch.set(accountRefBud,new AccountModel(aName,aAmount,aType));
-                            batch.set(accountRefDef,new AccountModel(aName2,aAmount,aType2));
-
-                            batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-
-                                }
-                            });
-
-
-
-
-
-                           // accountRefDef.set(new AccountModel(aName,aAmount,aType));
-                            //accountRefBud.set(new AccountModel(aName2,aAmount,aType2));
-                            //userDetails.set(new UserModel(uName,uLastName,uAge,uEmail,uPhone,uAddress,uZipCode,uFillial)).addOnSuccessListener(new OnSuccessListener<Void>() {
-
-
-
+                            createUserDetails();
                         } else {
                             // If sign in fails, display a message to the user.
-                            String error = task.getException().toString();
-                            String errorPrint = error.substring(error.lastIndexOf(":") + 1);
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(CreateUserActivity.this, task.getException().getMessage(),
                                     Toast.LENGTH_SHORT).show();
@@ -141,8 +94,65 @@ public class CreateUserActivity extends AppCompatActivity {
         // [END create_user_with_email]
     }
 
-    private void createAccount (){
+    private void createUserDetails(){
+        FirebaseUser user = mAuth.getCurrentUser();
+        String userId = user.getUid();
 
+        final DocumentReference userDetails = db.collection(userId).document("user");
+        DocumentReference accountRefDef = db.collection(userId).document("accounts")
+                .collection("accounts").document();
+        DocumentReference accountRefBud = db.collection(userId).document("accounts")
+                .collection("accounts").document();
+
+
+        String aName = "Default account";
+        String aName2 = "Budget account";
+        double aAmount = 0.00;
+        String aType = "default";
+        String aType2 = "budget";
+        final String uName = uFName.getText().toString();
+        final String uLastName = uLName.getText().toString();
+        final int uAge = Integer.parseInt(uUserAge.getText().toString());
+        final String uEmail = uMail.getText().toString();
+        final int uPhone = Integer.parseInt(uPhoneNumber.getText().toString());
+        final String uAddress = uHomeAddress.getText().toString();
+        final int uZipCode = Integer.parseInt(uAddressZipcode.getText().toString());
+        final String uFillial = uSelectedFilial;
+
+        WriteBatch batch = db.batch();
+
+        batch.set(userDetails,new UserModel(uName,uLastName,uAge,uEmail,uPhone,uAddress,uZipCode,uFillial));
+        batch.set(accountRefBud,new AccountModel(aName,aAmount,aType));
+        batch.set(accountRefDef,new AccountModel(aName2,aAmount,aType2));
+
+        batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d(TAG, "onSuccess: batch.commit() is a success");
+                finish();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: batch.commit is a failure");
+            }
+        });
+
+    }
+
+    private void setUserFilial(){
+        int zipValue = Integer.parseInt(uAddressZipcode.getText().toString());
+        if (zipValue < 5000){
+            uSelectedFilial = "København";
+            Log.d(TAG, "setUserFilial: " + uSelectedFilial);
+        }
+        if (zipValue >= 5000 && zipValue < 5999){
+            uSelectedFilial = "Odense";
+            Log.d(TAG, "setUserFilial: " + uSelectedFilial);
+        } if (zipValue >= 6000 && zipValue < 9999){
+            uSelectedFilial = "Århus";
+            Log.d(TAG, "setUserFilial: "+ uSelectedFilial);
+        }
 
     }
 
@@ -213,6 +223,8 @@ public class CreateUserActivity extends AppCompatActivity {
             valid = false;
         } else {
             uAddressZipcode.setError(null);
+            setUserFilial();
+            
         }
 
 
