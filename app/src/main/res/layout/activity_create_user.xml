@@ -40,7 +40,7 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:hint="name"
+            android:hint="First name"
             android:inputType="textPersonName"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvPITitle" />
@@ -52,7 +52,7 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:hint="surname"
+            android:hint="Last name"
             android:inputType="textPersonName"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/etUserFName" />
@@ -64,10 +64,10 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:hint="john@email.com"
+            android:hint="@string/fui_email_hint"
             android:inputType="textEmailAddress"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/etUserLName" />
+            app:layout_constraintTop_toBottomOf="@+id/etAge" />
 
         <EditText
             android:id="@+id/etUserPhone"
@@ -76,7 +76,7 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:hint="12345678"
+            android:hint="@string/fui_verify_phone_number_title"
             android:inputType="phone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/etUserEmail" />
@@ -111,8 +111,8 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:hint="ex 2500"
-            android:inputType="textPostalAddress"
+            android:hint="Zip code"
+            android:inputType="number"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/etAdressName" />
 
@@ -192,7 +192,7 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:hint="Street Name"
+            android:hint="Street adress"
             android:inputType="textPersonName"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvAdressTitle" />
@@ -204,10 +204,22 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="8dp"
             android:ems="10"
-            android:hint="password"
+            android:hint="@string/fui_password_hint"
             android:inputType="textPassword"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/etUserPhone" />
+
+        <EditText
+            android:id="@+id/etAge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:ems="10"
+            android:hint="Enter your age"
+            android:inputType="number"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/etUserLName" />
 
 
     </android.support.constraint.ConstraintLayout>

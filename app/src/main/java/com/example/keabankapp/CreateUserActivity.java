@@ -1,6 +1,5 @@
 package com.example.keabankapp;
 
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,14 +11,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.keabankapp.account.AccountCreate;
 import com.example.keabankapp.models.AccountModel;
 import com.example.keabankapp.models.UserModel;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,10 +31,11 @@ public class CreateUserActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthListener;
     //Log TAG
     private static final int ERROR_DIALOG_REQUEST = 9001;
-    EditText uFName, uLName, uMail, uPhone, uPassword;
-    //EditText uAdress, uZipCode;
+    EditText uFName, uLName, uMail, uPhoneNumber, uPassword, uUserAge;
+    EditText uHomeAddress, uAddressZipcode;
     TextView bankLocCPH, bankLocOds;
     Button btnCreateUser;
+    String uSelectedFilial;
     private static final String TAG = "CreateUserActivity";
 
 
@@ -84,46 +81,47 @@ public class CreateUserActivity extends AppCompatActivity {
                             FirebaseUser user = mAuth.getCurrentUser();
                             String userId = user.getUid();
 
+                            final DocumentReference userDetails = db.collection(userId).document("user");
+                            DocumentReference accountRefDef = db.collection(userId).document("accounts")
+                                    .collection("accounts").document();
+                            DocumentReference accountRefBud = db.collection(userId).document("accounts")
+                                    .collection("accounts").document();
+
+
                             String aName = "Default account";
                             String aName2 = "Budget account";
                             double aAmount = 0.00;
                             String aType = "default";
                             String aType2 = "budget";
-                            String uName = "Bob";
-                            String uLastName = "Bobby";
-                            int uAge = 50;
-                            String uEmail = email;
-                            int uPhone = 42952142;
-                            String uAdress = "Vejnavn 21";
-                            int uZipCode = 4215;
-                            String uFillial = "københavn";
+                            final String uName = uFName.getText().toString();
+                            final String uLastName = uLName.getText().toString();
+                            final int uAge = Integer.parseInt(uUserAge.getText().toString());
+                            final String uEmail = email;
+                            final int uPhone = Integer.parseInt(uPhoneNumber.getText().toString());
+                            final String uAddress = uHomeAddress.getText().toString();
+                            final int uZipCode = Integer.parseInt(uAddressZipcode.getText().toString());
+                            final String uFillial = uSelectedFilial;
 
+                            WriteBatch batch = db.batch();
 
-                            DocumentReference userDetails = FirebaseFirestore.getInstance().collection(userId).document("user");
+                            batch.set(userDetails,new UserModel(uName,uLastName,uAge,uEmail,uPhone,uAddress,uZipCode,uFillial));
+                            batch.set(accountRefBud,new AccountModel(aName,aAmount,aType));
+                            batch.set(accountRefDef,new AccountModel(aName2,aAmount,aType2));
 
-
-
-                            DocumentReference accountRefDef = FirebaseFirestore.getInstance()
-                                    .collection(userId).document("accounts").collection("accounts").document();
-                            DocumentReference accountRefBud = FirebaseFirestore.getInstance()
-                                    .collection(userId).document("accounts").collection("accounts").document();
-
-
-
-                            accountRefDef.set(new AccountModel(aName,aAmount,aType));
-                            accountRefBud.set(new AccountModel(aName2,aAmount,aType2));
-                            userDetails.set(new UserModel(uName,uLastName,uAge,uEmail,uPhone,uAdress,uZipCode,uFillial)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            batch.commit().addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
-                                    Log.d(TAG, "onSuccess: Creating user information sucsessful");
-                                    finish();
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.d(TAG, "onFailure: Creating user information failed" + task.getException());
+
                                 }
                             });
+
+
+
+
+
+                           // accountRefDef.set(new AccountModel(aName,aAmount,aType));
+                            //accountRefBud.set(new AccountModel(aName2,aAmount,aType2));
+                            //userDetails.set(new UserModel(uName,uLastName,uAge,uEmail,uPhone,uAddress,uZipCode,uFillial)).addOnSuccessListener(new OnSuccessListener<Void>() {
 
 
 
@@ -167,6 +165,56 @@ public class CreateUserActivity extends AppCompatActivity {
         } else {
             uPassword.setError(null);
         }
+        String userName = uFName.getText().toString();
+        if (TextUtils.isEmpty(userName)) {
+            uFName.setError("Required");
+            valid = false;
+        } else {
+            uFName.setError(null);
+        }
+        String userLName = uLName.getText().toString();
+        if (TextUtils.isEmpty(userLName)) {
+            uLName.setError("Required");
+            valid = false;
+        } else {
+            uLName.setError(null);
+        }
+        String userAge = uUserAge.getText().toString();
+        if (TextUtils.isEmpty(userAge)) {
+            uUserAge.setError("Required");
+            valid = false;
+        } else {
+            uUserAge.setError(null);
+        }
+        String userEmail = uMail.getText().toString();
+        if (TextUtils.isEmpty(userEmail)) {
+            uMail.setError("Required");
+            valid = false;
+        } else {
+            uMail.setError(null);
+        }
+        String userPhone = uPhoneNumber.getText().toString();
+        if (TextUtils.isEmpty(userPhone)) {
+            uPhoneNumber.setError("Required");
+            valid = false;
+        } else {
+            uPhoneNumber.setError(null);
+        }
+        String userAddress = uHomeAddress.getText().toString();
+        if (TextUtils.isEmpty(userAddress)) {
+            uHomeAddress.setError("Required");
+            valid = false;
+        } else {
+            uHomeAddress.setError(null);
+        }
+        String userAddressZipcode = uAddressZipcode.getText().toString();
+        if (TextUtils.isEmpty(userAddressZipcode)) {
+            uAddressZipcode.setError("Required");
+            valid = false;
+        } else {
+            uAddressZipcode.setError(null);
+        }
+
 
         return valid;
     }
@@ -179,13 +227,14 @@ public class CreateUserActivity extends AppCompatActivity {
         uFName = findViewById(R.id.etUserFName);
         uLName = findViewById(R.id.etUserLName);
         uMail = findViewById(R.id.etUserEmail);
-        uPhone = findViewById(R.id.etUserPhone);
-       // uAdress = findViewById(R.id.etAdressName);
-        //uZipCode = findViewById(R.id.etZipCode);
+        uPhoneNumber = findViewById(R.id.etUserPhone);
+        uHomeAddress = findViewById(R.id.etAdressName);
+        uAddressZipcode = findViewById(R.id.etZipCode);
         bankLocCPH = findViewById(R.id.tvCPH);
         bankLocOds = findViewById(R.id.tvOdense);
         btnCreateUser = findViewById(R.id.btnSignUp);
         uPassword = findViewById(R.id.etPassword);
+        uUserAge = findViewById(R.id.etAge);
 
     }
 
