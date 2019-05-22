@@ -3,7 +3,6 @@ package com.example.keabankapp.account;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.renderscript.ScriptGroup;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,12 +15,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.keabankapp.LoginActivity;
-import com.example.keabankapp.MainActivity;
 import com.example.keabankapp.R;
-import com.example.keabankapp.adapter.AccountAdapter;
 import com.example.keabankapp.models.AccountTransactionModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -38,12 +36,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
-import com.google.firestore.v1beta1.WriteResult;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public class AccountTransfer extends AppCompatActivity {
@@ -56,7 +51,7 @@ public class AccountTransfer extends AppCompatActivity {
     Spinner spinnerToAccount;
     Button btnSubmit;
     EditText etAmount;
-    Spinner spinnerFromAccount;
+    TextView tvAccountName;
     private String accountID,accountToID;
     private double accountToBalance,accountFromBalance;
     private SparseIntArray nemCode = new SparseIntArray();
@@ -76,8 +71,8 @@ public class AccountTransfer extends AppCompatActivity {
         etAmount = findViewById(R.id.etTransfAmount);
         setupFirebaseAuth();
         init();
-        setupSpinner();
         getIncomingIntent();
+        setupSpinner();
         setupNemCode();
     }
     //Checks the state of the user that is sign in.
@@ -124,6 +119,7 @@ public class AccountTransfer extends AppCompatActivity {
     private void setupSpinner(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
+        final DocumentReference accountSelectedName = db.collection(userId).document("accounts").collection("accounts").document(accountID);
         final CollectionReference accountRef = db.collection(userId).document("accounts").collection("accounts");
         final List<String> accounts = new ArrayList<>();
         final List<String> accountsID = new ArrayList<>();
@@ -161,10 +157,18 @@ public class AccountTransfer extends AppCompatActivity {
                 accountToID = accountsID.get(position);
 
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
+            }
+        });
+
+        accountSelectedName.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                String accountName = documentSnapshot.getString("aName");
+                tvAccountName.setText(accountName);
+                Log.d(TAG, "onSuccess: ACCOUNTSELECTNAME !!!!");
             }
         });
     }
@@ -419,9 +423,10 @@ public class AccountTransfer extends AppCompatActivity {
     private void init(){
 
         btnSubmit = findViewById(R.id.btnTransfSubmit);
-        spinnerFromAccount = findViewById(R.id.spinnerFromAccount);
+        //spinnerFromAccount = findViewById(R.id.accountFromName);
         spinnerToAccount = findViewById(R.id.spinnerToAccount);
         btnSubmit.setOnClickListener(onClickSubmitTransf);
+        tvAccountName = findViewById(R.id.tvAccountName);
 
 
     }
