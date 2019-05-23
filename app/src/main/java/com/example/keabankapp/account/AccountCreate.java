@@ -5,6 +5,7 @@ import android.net.IpSecManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -108,8 +109,10 @@ public class AccountCreate extends AppCompatActivity {
     private View.OnClickListener onClickCreateAccount = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
             Log.d(TAG, "onClick: called");
+            if (!validateForm()) {
+                return;
+            }
 
                 String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -129,6 +132,19 @@ public class AccountCreate extends AppCompatActivity {
 
         }
     };
+
+    private boolean validateForm() {
+        boolean valid = true;
+
+        String acName = accountName.getText().toString();
+        if (TextUtils.isEmpty(acName)) {
+            accountName.setError("Required.");
+            valid = false;
+        } else {
+            accountName.setError(null);
+        }
+        return valid;
+    }
 
 
 
