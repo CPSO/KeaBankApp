@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.View;
@@ -49,8 +50,8 @@ public class AccountTransfer extends AppCompatActivity {
     //Firebase
     private FirebaseAuth.AuthStateListener mAuthListener;
     Spinner spinnerToAccount;
-    Button btnSubmit;
-    EditText etAmount;
+    Button btnSubmit,btnGlobalSubmit,btnGetData;
+    EditText etAmount,etAccountToEmail;
     TextView tvAccountName;
     private String accountID,accountToID;
     private double accountToBalance,accountFromBalance;
@@ -171,6 +172,13 @@ public class AccountTransfer extends AppCompatActivity {
                 Log.d(TAG, "onSuccess: ACCOUNTSELECTNAME !!!!");
             }
         });
+    }
+
+
+    private void setupGlobalSpinner(){
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        final FirebaseFirestore db = FirebaseFirestore.getInstance();
+
     }
 
     private void getTransferMoney(){
@@ -308,55 +316,7 @@ public class AccountTransfer extends AppCompatActivity {
                 }
             }
         });
-
         finish();
-
-        //Tasks.whenAllComplete()
-
-        /*
-        try {
-            Log.d(TAG, "onClickSubmit: trying parse double " + valueFromET);
-
-            accountToRef.update(
-                    "aAmount",toAccountBalance).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if(task.isSuccessful()){
-                        Toast.makeText(AccountTransfer.this, "Balance Added",
-                                Toast.LENGTH_SHORT).show();
-
-                    }
-                    else{
-                        Toast.makeText(AccountTransfer.this, "Failed!",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.d(TAG, "onFailure: " + e);
-                }
-            });
-
-            accountFromRef.update("aAmount",newBalance).addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Log.d(TAG, "onSuccess: Account from balance" + newBalance);
-
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-
-                }
-            });
-
-        } catch (Exception e1){
-            e1.printStackTrace();
-            Log.d(TAG, "onClickSubmit: parsing failed ");
-        }
-        */
-
     }
     private void makeTransactionHistory(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -408,6 +368,29 @@ public class AccountTransfer extends AppCompatActivity {
             getTransferMoney();
         }
     };
+    
+    private View.OnClickListener onClickGetData = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d(TAG, "onClick: Get Data pressed");
+            if (!validateForm()) {
+                return;
+            }
+        }
+    };
+
+    private boolean validateForm() {
+        boolean valid = true;
+
+        String acEmail = etAccountToEmail.getText().toString();
+        if (TextUtils.isEmpty(acEmail)) {
+            etAccountToEmail.setError("Required.");
+            valid = false;
+        } else {
+            etAccountToEmail.setError(null);
+        }
+        return valid;
+    }
 
 
 
@@ -427,6 +410,10 @@ public class AccountTransfer extends AppCompatActivity {
         spinnerToAccount = findViewById(R.id.spinnerToAccount);
         btnSubmit.setOnClickListener(onClickSubmitTransf);
         tvAccountName = findViewById(R.id.tvAccountName);
+        etAccountToEmail = findViewById(R.id.etAccountEmail);
+        //btnGlobalSubmit.setOnClickListener(onClickGlobalSubmit);
+        btnGetData = findViewById(R.id.btnGetData);
+        btnGetData.setOnClickListener(onClickGetData);
 
 
     }
