@@ -82,7 +82,7 @@ public class PopActivity extends Activity {
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        db.collection(userId).document("accounts").collection("accounts").document(accountID)
+        db.collection("users").document(userId).collection("accounts").document(accountID)
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
@@ -107,8 +107,8 @@ public class PopActivity extends Activity {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        DocumentReference accountRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
-        final CollectionReference accountTransaction = db.collection(userId).document("accounts").collection("accounts").document(accountID)
+        DocumentReference accountRef = db.collection("users").document(userId).collection("accounts").document(accountID);
+        final CollectionReference accountTransaction = db.collection("users").document(userId).collection("accounts").document(accountID)
                                                 .collection("transactions");
 
 

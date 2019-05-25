@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     //creates a referance to the collection in Firestore
-    private CollectionReference accountsListRef = db.collection(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).document("accounts").collection("accounts");
+    private CollectionReference accountsListRef = db.collection("users").document(FirebaseAuth.getInstance().getUid()).collection("accounts");
     //Firebase Auth
     private FirebaseAuth mAuth;
     //Firebase

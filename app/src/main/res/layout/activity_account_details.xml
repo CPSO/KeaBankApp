@@ -17,7 +17,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:textStyle="bold"/>
 
     <TextView
         android:id="@+id/tvADName"
@@ -43,6 +44,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
+        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@+id/tvADName" />
 
     <TextView
@@ -65,6 +67,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="Account Balance"
+        android:textStyle="bold"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -93,7 +96,11 @@
         android:text="Deposit Money"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/btnTransferMoney"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/roundedbutton"
+        android:padding="5dp"
+        android:textColor="#ffff"
+        />
 
     <Button
         android:id="@+id/btnTransferMoney"
@@ -103,7 +110,11 @@
         android:layout_marginEnd="24dp"
         android:text="Transfer Money"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnDepositMoney" />
+        app:layout_constraintTop_toBottomOf="@+id/btnDepositMoney"
+        android:background="@drawable/roundedbutton"
+        android:padding="5dp"
+        android:textColor="#ffff"
+        />
 
     <View
         android:id="@+id/divider5"

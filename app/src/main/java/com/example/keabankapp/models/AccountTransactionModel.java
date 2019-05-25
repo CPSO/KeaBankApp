@@ -28,7 +28,6 @@ public class AccountTransactionModel {
         return tAccountToId;
     }
 
-    @Exclude
     public String gettDocumentId() {
         return tDocumentId;
     }

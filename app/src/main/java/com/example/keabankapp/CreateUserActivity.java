@@ -98,10 +98,10 @@ public class CreateUserActivity extends AppCompatActivity {
         FirebaseUser user = mAuth.getCurrentUser();
         String userId = user.getUid();
 
-        final DocumentReference userDetails = db.collection(userId).document("user");
-        DocumentReference accountRefDef = db.collection(userId).document("accounts")
+        final DocumentReference userDetails = db.collection("users").document(userId);
+        DocumentReference accountRefDef = db.collection("users").document(userId)
                 .collection("accounts").document();
-        DocumentReference accountRefBud = db.collection(userId).document("accounts")
+        DocumentReference accountRefBud = db.collection("users").document(userId)
                 .collection("accounts").document();
 
 
