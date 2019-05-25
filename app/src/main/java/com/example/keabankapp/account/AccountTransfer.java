@@ -120,8 +120,8 @@ public class AccountTransfer extends AppCompatActivity {
     private void setupSpinner(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
-        final DocumentReference accountSelectedName = db.collection(userId).document("accounts").collection("accounts").document(accountID);
-        final CollectionReference accountRef = db.collection(userId).document("accounts").collection("accounts");
+        final DocumentReference accountSelectedName = db.collection("users").document(userId).collection("accounts").document(accountID);
+        final CollectionReference accountRef = db.collection("users").document(userId).collection("accounts");
         final List<String> accounts = new ArrayList<>();
         final List<String> accountsID = new ArrayList<>();
         final List<Double> accountsBalance = new ArrayList<>();
@@ -179,13 +179,14 @@ public class AccountTransfer extends AppCompatActivity {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+
     }
 
     private void getTransferMoney(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference accountFromRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
-        DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
+        DocumentReference accountFromRef = db.collection("users").document(userId).collection("accounts").document(accountID);
+        DocumentReference accountToRef = db.collection("users").document(userId).collection("accounts").document(accountToID);
 
 
 
@@ -288,9 +289,9 @@ public class AccountTransfer extends AppCompatActivity {
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference accountFromRef = db.collection(userId).document("accounts").collection("accounts").document(accountID);
+        DocumentReference accountFromRef = db.collection("users").document(userId).collection("accounts").document(accountID);
         Log.d(TAG, "transferMoney: from account with id: " + accountID);
-        DocumentReference accountToRef = db.collection(userId).document("accounts").collection("accounts").document(accountToID);
+        DocumentReference accountToRef = db.collection("users").document(userId).collection("accounts").document(accountToID);
         Log.d(TAG, "transferMoney: to account with id " + accountToID);
 
 
@@ -321,9 +322,9 @@ public class AccountTransfer extends AppCompatActivity {
     private void makeTransactionHistory(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        final CollectionReference accountTransactionFrom = db.collection(userId).document("accounts").collection("accounts").document(accountID)
+        final CollectionReference accountTransactionFrom = db.collection("users").document(userId).collection("accounts").document(accountID)
                 .collection("transactions");
-        final CollectionReference accountTransactionTo = db.collection(userId).document("accounts").collection("accounts").document(accountToID)
+        final CollectionReference accountTransactionTo = db.collection("users").document(userId).collection("accounts").document(accountToID)
                 .collection("transactions");
 
         final String tType = "transfer";

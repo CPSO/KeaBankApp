@@ -31,7 +31,6 @@ import java.util.Objects;
 public class AccountCreate extends AppCompatActivity {
     private static final String TAG = "AccountCreate";
     FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private CollectionReference accountsListRef = db.collection(Objects.requireNonNull(FirebaseAuth.getInstance().getUid())).document("accounts").collection("accounts");
     //Firebase Auth
     private FirebaseAuth mAuth;
     //Firebase
@@ -121,7 +120,7 @@ public class AccountCreate extends AppCompatActivity {
                 String aType = selectedAccountType;
 
                 DocumentReference accountRef = FirebaseFirestore.getInstance()
-                        .collection(userId).document("accounts").collection("accounts").document();
+                        .collection("users").document(userId).collection("accounts").document();
                 accountRef.set(new AccountModel(aName,aAmount,aType));
 
             Toast.makeText(AccountCreate.this, "Created a new account",

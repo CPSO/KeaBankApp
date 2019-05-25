@@ -102,7 +102,7 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         Log.d(TAG, "loadDataFromFirestore: called account id with: " + accountID);
 
 
-        db.collection(userId).document("accounts").collection("accounts").document(accountID)
+        db.collection("users").document(userId).collection("accounts").document(accountID)
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
@@ -137,7 +137,7 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     private void setUpRecyclerView() {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        CollectionReference accountTransRef = db.collection(userId).document("accounts")
+        CollectionReference accountTransRef = db.collection("users").document(userId)
                 .collection("accounts").document(accountID).collection("transactions");
 
         Query query = accountTransRef.orderBy("tTimestamp",Query.Direction.DESCENDING);
