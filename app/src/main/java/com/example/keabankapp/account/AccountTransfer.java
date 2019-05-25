@@ -10,12 +10,18 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseIntArray;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,15 +56,20 @@ public class AccountTransfer extends AppCompatActivity {
     private FirebaseAuth mAuth;
     //Firebase
     private FirebaseAuth.AuthStateListener mAuthListener;
-    Spinner spinnerToAccount;
+    Spinner spinnerToAccount,spinnerGlobal;
     Button btnSubmit,btnGlobalSubmit,btnGetData;
     EditText etAmount,etAccountToEmail;
     TextView tvAccountName;
+    Switch aSwitch;
+    TextView tvToTitle,tvSelectAccount,tvSelectEmail;
     private String accountID,accountToID;
     private double accountToBalance,accountFromBalance;
     private SparseIntArray nemCode = new SparseIntArray();
     private double valueFromET;
-    
+    private String globalUserId;
+    private boolean isChecked = false;
+
+
 
 
 
@@ -76,6 +87,7 @@ public class AccountTransfer extends AppCompatActivity {
         getIncomingIntent();
         setupSpinner();
         setupNemCode();
+        setElements();
     }
     //Checks the state of the user that is sign in.
     //ether the user is active or is signing out
@@ -119,7 +131,7 @@ public class AccountTransfer extends AppCompatActivity {
 
 
     private void setupSpinner(){
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
         final DocumentReference accountSelectedName = db.collection("users").document(userId).collection("accounts").document(accountID);
         final CollectionReference accountRef = db.collection("users").document(userId).collection("accounts");
@@ -157,6 +169,7 @@ public class AccountTransfer extends AppCompatActivity {
                 Log.d(TAG, "onItemSelected: spinner has picked id: " + accountsID.get(position));
                 Log.d(TAG, "onItemSelected: spinner has picked account with balance:  " + accountsBalance.get(position));
                 accountToID = accountsID.get(position);
+                globalUserId = userId;
 
             }
             @Override
@@ -187,6 +200,10 @@ public class AccountTransfer extends AppCompatActivity {
                 if (!queryDocumentSnapshots.isEmpty()) {
                     for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
                         Log.d(TAG, "onSuccess: " + document.getId() + " - " + document.getData());
+                        globalUserId = document.getId();
+                        setupGlobalSpinner();
+
+
                     }
                 } else {
                     Log.d(TAG, "No User found: ");
@@ -220,11 +237,62 @@ public class AccountTransfer extends AppCompatActivity {
 
     }
 
+    private void setupGlobalSpinner(){
+        final FirebaseFirestore db = FirebaseFirestore.getInstance();
+        final CollectionReference accountRef = db.collection("users").document(globalUserId).collection("accounts");
+        final List<String> accounts = new ArrayList<>();
+        final List<String> accountsID = new ArrayList<>();
+        final List<Double> accountsBalance = new ArrayList<>();
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_item, accounts);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerGlobal.setAdapter(adapter);
+        accountRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        String accountName = document.getString("aName");
+                        String accountID = document.getId();
+                        double accountBalance = document.getDouble("aAmount");
+                        Log.d(TAG, "onComplete: " + accountBalance);
+
+                        accounts.add(accountName);
+                        accountsID.add(accountID);
+                        accountsBalance.add(accountBalance);
+                        accountToID = accountID;
+                        accountToBalance = accountBalance;
+                        Log.d(TAG, "onComplete: "+ accountToBalance);
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
+        spinnerGlobal.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG, "onItemSelected: spinner has chosen: " + parent.getItemAtPosition(position).toString());
+                Log.d(TAG, "onItemSelected: spinner has picked id: " + accountsID.get(position));
+                Log.d(TAG, "onItemSelected: spinner has picked account with balance:  " + accountsBalance.get(position));
+                accountToID = accountsID.get(position);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                String aString = parent.getItemAtPosition(0).toString();
+                accountToID = aString;
+            }
+        });
+    }
+
+
     private void getTransferMoney(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        
+        if (globalUserId.isEmpty()){
+            Log.d(TAG, "getTransferMoney: Needs data for sender");
+        }else {
         DocumentReference accountFromRef = db.collection("users").document(userId).collection("accounts").document(accountID);
-        DocumentReference accountToRef = db.collection("users").document(userId).collection("accounts").document(accountToID);
+        DocumentReference accountToRef = db.collection("users").document(globalUserId).collection("accounts").document(accountToID);
 
 
 
@@ -281,6 +349,7 @@ public class AccountTransfer extends AppCompatActivity {
         });
 
     }
+    }
 
     private void nemID(){
         int size = nemCode.size();
@@ -329,7 +398,7 @@ public class AccountTransfer extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference accountFromRef = db.collection("users").document(userId).collection("accounts").document(accountID);
         Log.d(TAG, "transferMoney: from account with id: " + accountID);
-        DocumentReference accountToRef = db.collection("users").document(userId).collection("accounts").document(accountToID);
+        DocumentReference accountToRef = db.collection("users").document(globalUserId).collection("accounts").document(accountToID);
         Log.d(TAG, "transferMoney: to account with id " + accountToID);
 
 
@@ -362,7 +431,7 @@ public class AccountTransfer extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         final CollectionReference accountTransactionFrom = db.collection("users").document(userId).collection("accounts").document(accountID)
                 .collection("transactions");
-        final CollectionReference accountTransactionTo = db.collection("users").document(userId).collection("accounts").document(accountToID)
+        final CollectionReference accountTransactionTo = db.collection("users").document(globalUserId).collection("accounts").document(accountToID)
                 .collection("transactions");
 
         final String tType = "transfer";
@@ -419,6 +488,53 @@ public class AccountTransfer extends AppCompatActivity {
         }
     };
 
+    private CompoundButton.OnCheckedChangeListener changeListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (isChecked){
+                btnGetData.setEnabled(true);
+                etAccountToEmail.setEnabled(true);
+                spinnerGlobal.setEnabled(true);
+                btnGetData.setVisibility(View.VISIBLE);
+                spinnerGlobal.setVisibility(View.VISIBLE);
+                etAccountToEmail.setVisibility(View.VISIBLE);
+                tvSelectEmail.setVisibility(View.VISIBLE);
+                tvSelectAccount.setVisibility(View.VISIBLE);
+                globalUserId = "";
+                spinnerToAccount.setEnabled(false);
+                spinnerToAccount.setVisibility(View.GONE);
+                tvToTitle.setVisibility(View.GONE);
+
+            } else {
+                btnGetData.setEnabled(false);
+                etAccountToEmail.setEnabled(false);
+                spinnerGlobal.setEnabled(false);
+                etAccountToEmail.setVisibility(View.GONE);
+                spinnerGlobal.setVisibility(View.GONE);
+                btnGetData.setVisibility(View.GONE);
+                spinnerToAccount.setEnabled(true);
+                spinnerToAccount.setVisibility(View.VISIBLE);
+                tvToTitle.setVisibility(View.VISIBLE);
+                globalUserId = "";
+
+            }
+        }
+    };
+
+    private void setElements(){
+        btnGetData.setEnabled(false);
+        etAccountToEmail.setEnabled(false);
+        spinnerGlobal.setEnabled(false);
+        etAccountToEmail.setVisibility(View.GONE);
+        spinnerGlobal.setVisibility(View.GONE);
+        btnGetData.setVisibility(View.GONE);
+        tvSelectEmail.setVisibility(View.GONE);
+        tvSelectAccount.setVisibility(View.GONE);
+
+    }
+
+
+
     private boolean validateForm() {
         boolean valid = true;
 
@@ -448,12 +564,20 @@ public class AccountTransfer extends AppCompatActivity {
         btnSubmit = findViewById(R.id.btnTransfSubmit);
         //spinnerFromAccount = findViewById(R.id.accountFromName);
         spinnerToAccount = findViewById(R.id.spinnerToAccount);
+        spinnerGlobal = findViewById(R.id.spinnerGlobal);
         btnSubmit.setOnClickListener(onClickSubmitTransf);
         tvAccountName = findViewById(R.id.tvAccountName);
         etAccountToEmail = findViewById(R.id.etAccountEmail);
         //btnGlobalSubmit.setOnClickListener(onClickGlobalSubmit);
         btnGetData = findViewById(R.id.btnGetData);
         btnGetData.setOnClickListener(onClickGetData);
+        aSwitch = findViewById(R.id.switch1);
+        aSwitch.setOnCheckedChangeListener(changeListener);
+        tvToTitle = findViewById(R.id.textView11);
+        tvSelectAccount = findViewById(R.id.tvPickAccountTitle);
+        tvSelectEmail = findViewById(R.id.tvEnterEmailTitle);
+
+
 
 
     }
