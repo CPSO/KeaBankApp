@@ -34,6 +34,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
@@ -175,9 +176,46 @@ public class AccountTransfer extends AppCompatActivity {
     }
 
 
-    private void setupGlobalSpinner(){
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    private void searchForUser(){
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String userEmail = etAccountToEmail.getText().toString();
+        final Query collectionReference = db.collection("users").whereEqualTo("uEmail", userEmail);
+
+        collectionReference.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if (!queryDocumentSnapshots.isEmpty()) {
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                        Log.d(TAG, "onSuccess: " + document.getId() + " - " + document.getData());
+                    }
+                } else {
+                    Log.d(TAG, "No User found: ");
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: Failed Query to Firestore" + e.getMessage());
+            }
+        });
+
+
+        db.collection("users")
+                .whereEqualTo("uEmail", userEmail) // <-- This line
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                                Log.d(TAG, "onComplete:");
+                            }
+                        } else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
 
 
     }
@@ -377,6 +415,7 @@ public class AccountTransfer extends AppCompatActivity {
             if (!validateForm()) {
                 return;
             }
+            searchForUser();
         }
     };
 
