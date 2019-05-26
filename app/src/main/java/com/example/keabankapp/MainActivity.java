@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.example.keabankapp.account.AccountCreate;
 import com.example.keabankapp.account.AccountDetails;
 import com.example.keabankapp.adapter.AccountAdapter;
+import com.example.keabankapp.bill.BillMainActivity;
 import com.example.keabankapp.models.AccountModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -64,6 +65,11 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.account_page:
                 Log.d(TAG, "onOptionsItemSelected: account_page");
+                return true;
+            case R.id.bill_page:
+                Log.d(TAG, "onOptionsItemSelected: bill_page");
+                Intent intent = new Intent(MainActivity.this, BillMainActivity.class);
+                startActivity(intent);
                 return true;
             case R.id.card_page:
                 Log.d(TAG, "onOptionsItemSelected: card_page");

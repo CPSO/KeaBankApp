@@ -15,4 +15,5 @@
     <string name="popup_title">Deposit Money</string>
     <string name="popup_amount">Enter amount of money</string>
     <string name="popup_btnSubmit">Submit</string>
+    <string name="title_activity_bill_main">Bills</string>
 </resources>

@@ -4,6 +4,9 @@
     <item android:id="@+id/account_page"
         android:title="@string/account_option_menu"
         app:showAsAction="never"/>
+    <item android:id="@+id/bill_page"
+        android:title="Bills"
+        app:showAsAction="never" />
     <item android:id="@+id/card_page"
         android:title="@string/cards_option_menu"
         app:showAsAction="never"/>
