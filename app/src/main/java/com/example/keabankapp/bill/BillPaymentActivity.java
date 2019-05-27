@@ -1,17 +1,21 @@
 package com.example.keabankapp.bill;
 //FIXME A list of a gameplan:
-// - Make a PayNow method that pays the bills today. sets isPayed true and saves it in payments collection.
+// # Make a PayNow method that pays the bills today. sets isPayed true and saves it in payments collection.
 // - Make a Later Date payment, that saves the bill for a later date, sets isPlayed false.
 // - Make a Mehod for MainActivity to all not paid bills and checks the date if they needs to be paid.
 
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,13 +26,17 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.R;
+import com.example.keabankapp.models.AccountTransactionModel;
 import com.example.keabankapp.models.PaymentModel;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -48,6 +56,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public class BillPaymentActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
     //TAG
@@ -69,6 +78,8 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     private Double selectedAccountBalance;
     private boolean isAuto;
     private boolean isSameDate = false;
+    private SparseIntArray nemCode = new SparseIntArray();
+
 
 
     @Override
@@ -76,6 +87,7 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         super.onCreate(savedInstanceState);
         setupFirebaseAuth();
         setContentView(R.layout.activity_bill_payment);
+        setupNemCode();
         init();
     }
 
@@ -202,15 +214,60 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     };
 
     private void payNow() {
-        CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
-        String pTitle = paymentName.getText().toString();
-        String pAccountFromId = selectedAccountID;
-        String pAccountToId = accountReciver.getText().toString();
-        double pAmount = Double.parseDouble(paymentAmount.getText().toString());
-        Date pPayTime = getDateFromString(date);
-        Timestamp pPaymentMade = Timestamp.now();
-        boolean pAutoPayment = isAuto;
-        boolean pIsPayed = true;
+       final CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
+        final DocumentReference accountBalanceRef = db.collection("users").document(userID).collection("accounts").document(selectedAccountID);
+       final String pTitle = paymentName.getText().toString();
+       final String pAccountFromId = selectedAccountID;
+       final String pAccountToId = accountReciver.getText().toString();
+       final double pAmount = Double.parseDouble(paymentAmount.getText().toString());
+       final Date pPayTime = getDateFromString(date);
+       final Timestamp pPaymentMade = Timestamp.now();
+       final boolean pAutoPayment = isAuto;
+       final boolean pIsPayed = true;
+
+
+        accountBalanceRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()){
+                    selectedAccountBalance = documentSnapshot.getDouble("aAmount");
+                    if (selectedAccountBalance < pAmount){
+                        Log.d(TAG, "onSuccess: Amount is bigger than balance: " + selectedAccountBalance + " < " + pAmount);
+
+                    } else {
+                        Log.d(TAG, "onSuccess: Balance is OK to procede");
+                        paymentRef.add(new PaymentModel(pTitle,pAccountFromId,pAccountToId,pAmount,pPayTime,pPaymentMade,pAutoPayment,pIsPayed)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            @Override
+                            public void onSuccess(DocumentReference documentReference) {
+                                Log.d(TAG, "onSuccess: added payment");
+                                double newBalance = (selectedAccountBalance - pAmount);
+                                accountBalanceRef.update("aAmount",newBalance).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d(TAG, "onSuccess: set a new balance");
+                                        makeTransactionHistory();
+                                        finish();
+                                    }
+                                });
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.d(TAG, "onFailure: " + e.getMessage());
+                            }
+                        });
+
+                    }
+
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: Error getting accountBalanceRef");
+            }
+        });
+
 
         /*
             Tast 1 Remove Balance on selected account
@@ -219,6 +276,41 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
          */
 
     }
+
+    private void makeTransactionHistory(){
+        final CollectionReference accountTransactionFrom = db.collection("users").document(userID).collection("accounts").document(selectedAccountID)
+                .collection("transactions");
+
+        final String tType = "payment";
+        final Timestamp tTimestamp = Timestamp.now();
+        final double tAmount = Double.parseDouble(paymentAmount.getText().toString());;
+        final String tDocumentId = selectedAccountID;
+        final String tAccountToId = "";
+
+        final Task<DocumentReference> addAccountTransfer = accountTransactionFrom.add(new AccountTransactionModel(tType,tAccountToId,tDocumentId,tTimestamp,tAmount)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.d(TAG, "onSuccess: addAccountTransfer");
+            }
+        });
+
+        Tasks.whenAllComplete(addAccountTransfer).addOnCompleteListener(new OnCompleteListener<List<Task<?>>>() {
+            @Override
+            public void onComplete(@NonNull Task<List<Task<?>>> task) {
+                Log.d(TAG, "onComplete: All Transfer Notes added");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: some Transfer notes failed");
+            }
+        });
+
+
+
+    }
+
+
 
     private void makePayment(){
         CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
@@ -255,6 +347,47 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
             }
         }
     };
+
+
+    private void nemID(){
+        int size = nemCode.size();
+        Random r = new Random();
+        int randomNumber = r.nextInt(size);
+        int selectedKey = nemCode.keyAt(randomNumber);
+        final int selectedValueInt = nemCode.valueAt(randomNumber);
+        final String selectedValueString = Integer.toString(selectedValueInt);
+        Log.d(TAG, "nemID: Another randommer values: " + randomNumber);
+        Log.d(TAG, "nemID: Selecting key: " + selectedKey);
+        Log.d(TAG, "nemID: Selecting key: " + selectedValueInt);
+
+
+        final EditText nemidInputText = new EditText(this);
+        nemidInputText.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("NEM ID Code")
+                .setMessage("Enter code for key: " + selectedKey)
+                .setView(nemidInputText)
+                .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String nemIDValue = String.valueOf(nemidInputText.getText());
+                        if (nemIDValue.equals(selectedValueString)){
+                            Log.d(TAG, "onClick: " + nemIDValue + " = " + selectedValueString);
+                            Toast.makeText(BillPaymentActivity.this,"Sending Money", Toast.LENGTH_LONG).show();
+                            //transferMoney();
+
+                        } else {
+                            Log.d(TAG, "onClick: " + nemIDValue + " != " + selectedValueString);
+                            Toast.makeText(BillPaymentActivity.this,"Wrong Value", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+        dialog.show();
+
+    }
 
 
 
@@ -320,6 +453,14 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 }
             }
         };
+    }
+
+    private void setupNemCode(){
+        //#Key - Value
+        nemCode.put(1278,3298);
+        nemCode.put(4565,9137);
+        nemCode.put(8264,7304);
+        nemCode.put(7615,6931);
     }
     private void init(){
         datePicker = findViewById(R.id.tvDatePicker);
