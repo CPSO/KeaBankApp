@@ -1,5 +1,6 @@
 package com.example.keabankapp.bill;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -28,16 +29,17 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
-public class BillPaymentActivity extends AppCompatActivity {
+public class BillPaymentActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
     //TAG
     private static final String TAG = "BillPaymentActivity";
     //Widgets
-    private EditText datePicker,paymentAmount,paymentName,accountReciver;
+    private EditText paymentAmount,paymentName,accountReciver;
     //private DatePicker datePicker;
     private Spinner spinnerAccount;
-    private TextView accountAmountTV;
+    private TextView accountAmountTV,datePicker;
     private Button buttonSubmit;
     private CheckBox autoPayment;
     //Firebase/Firestore
@@ -55,8 +57,30 @@ public class BillPaymentActivity extends AppCompatActivity {
         setupFirebaseAuth();
         setContentView(R.layout.activity_bill_payment);
         init();
-        //setupSpinner();
     }
+
+    private View.OnClickListener onClickDatePicker = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            showDatePickerDialog();
+        }
+    };
+
+    public void showDatePickerDialog(){
+        DatePickerDialog datePickerDialog = new DatePickerDialog( this, this,
+                Calendar.getInstance().get(Calendar.YEAR),
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+        datePickerDialog.show();
+    }
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+        String date = "month/day/year: " + month + "/" + dayOfMonth + "/" + year;
+        datePicker.setText(date);
+    }
+
+
     private void setupSpinner(){
         CollectionReference accountRef = db.collection("users").document(userID).collection("accounts");
         final List<String> accountsName = new ArrayList<>();
@@ -146,7 +170,8 @@ public class BillPaymentActivity extends AppCompatActivity {
         };
     }
     private void init(){
-        datePicker = findViewById(R.id.etDatePicker);
+        datePicker = findViewById(R.id.tvDatePicker);
+        datePicker.setOnClickListener(onClickDatePicker);
         paymentAmount = findViewById(R.id.etPaymentAmount);
         paymentName = findViewById(R.id.etNameForPayment);
         accountReciver = findViewById(R.id.etAccountToInfo);

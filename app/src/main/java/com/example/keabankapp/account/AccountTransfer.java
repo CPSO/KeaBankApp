@@ -512,6 +512,8 @@ public class AccountTransfer extends AppCompatActivity {
                 etAccountToEmail.setVisibility(View.GONE);
                 spinnerGlobal.setVisibility(View.GONE);
                 btnGetData.setVisibility(View.GONE);
+                tvSelectEmail.setVisibility(View.GONE);
+                tvSelectAccount.setVisibility(View.GONE);
                 spinnerToAccount.setEnabled(true);
                 spinnerToAccount.setVisibility(View.VISIBLE);
                 tvToTitle.setVisibility(View.VISIBLE);
