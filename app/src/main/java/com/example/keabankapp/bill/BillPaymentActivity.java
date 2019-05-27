@@ -122,8 +122,11 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 if (getDateFromString(date).equals(todayWithZeroTime)){
                     Log.d(TAG, "onDateSet: SAME DATE");
                     isSameDate = true;
+                    Log.d(TAG, "onDateSet: " + isSameDate);
                 } else {
                     Log.d(TAG, "onDateSet: NOT SAME DATE");
+                    isSameDate = false;
+                    Log.d(TAG, "onDateSet: " + isSameDate);
                 }
         } catch (ParseException e) {
             e.printStackTrace();
@@ -203,9 +206,11 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 Log.d(TAG, "onClick: Balance Check: Low Balance!");
             } else {
                 Log.d(TAG, "onClick: Balance Check: Balance OK!");
-                    if (isSameDate = true){
+                    if (isSameDate){
+                        Log.d(TAG, "IsSameDate = true " + isSameDate);
                         payNow();
                     } else {
+                        Log.d(TAG, "IsSameDate = false " + isSameDate);
                         makePayment();
 
                     }
@@ -214,6 +219,7 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     };
 
     private void payNow() {
+        Log.d(TAG, "payNow: Called");
        final CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
         final DocumentReference accountBalanceRef = db.collection("users").document(userID).collection("accounts").document(selectedAccountID);
        final String pTitle = paymentName.getText().toString();
@@ -278,6 +284,7 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     }
 
     private void makeTransactionHistory(){
+        Log.d(TAG, "makeTransactionHistory: Called");
         final CollectionReference accountTransactionFrom = db.collection("users").document(userID).collection("accounts").document(selectedAccountID)
                 .collection("transactions");
 
@@ -310,6 +317,7 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
 
 
     private void makePayment(){
+        Log.d(TAG, "makePayment: Called");
         CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
         String pTitle = paymentName.getText().toString();
         String pAccountFromId = selectedAccountID;
@@ -318,12 +326,13 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         Date pPayTime = getDateFromString(date);
         Timestamp pPaymentMade = Timestamp.now();
         boolean pAutoPayment = isAuto;
-        boolean pIsPayed = false;
+        final boolean pIsPayed = false;
 
         paymentRef.add(new PaymentModel(pTitle,pAccountFromId,pAccountToId,pAmount,pPayTime,pPaymentMade,pAutoPayment,pIsPayed)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
             @Override
             public void onSuccess(DocumentReference documentReference) {
-                Log.d(TAG, "onSuccess: added payment");
+                Log.d(TAG, "onSuccess: MakePayment Called: " + pIsPayed);
+                finish();
             }
         });
 

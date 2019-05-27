@@ -35,6 +35,10 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -61,7 +65,11 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: Called");
         setUpRecyclerView();
         setupFirebaseAuth();
-        autoPaymentGetList();
+        try {
+            autoPaymentGetList();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
     }
     @Override
@@ -150,8 +158,14 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void autoPaymentGetList(){
+    private void autoPaymentGetList() throws ParseException {
       String userid =  FirebaseAuth.getInstance().getUid();
+
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        Date today = new Date();
+        final Date todayWithZeroTime =formatter.parse(formatter.format(today));
+
+
         final Query payments = db.collection("users").document(userid).collection("payments").whereEqualTo("pIsPayed", false);
         payments.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
@@ -160,7 +174,13 @@ public class MainActivity extends AppCompatActivity {
                 if (!queryDocumentSnapshots.isEmpty()){
                     for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()){
                         Log.d(TAG, "onSuccess: Printing payment id(s): " + document.getId());
-                        accountUpdate(document);
+                        if (document.getTimestamp("pPayTime").toDate().equals(todayWithZeroTime)){
+                            Log.d(TAG, "payTime is true " + document.getTimestamp("pPayTime").toDate());
+                            accountUpdate(document);
+                        } else {
+                            Log.d(TAG, "payTime is false: Payment Day at:  " + document.getTimestamp("pPayTime").toDate().toString());
+                            Log.d(TAG, "payTime is false: " + todayWithZeroTime);
+                        }
                     }
                 }
             }
