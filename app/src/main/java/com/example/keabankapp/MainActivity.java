@@ -23,16 +23,19 @@ import com.example.keabankapp.models.AccountModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.WriteBatch;
 
-
-import java.util.Objects;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: Called");
         setUpRecyclerView();
         setupFirebaseAuth();
-        autoPayment();
+        autoPaymentGetList();
 
     }
     @Override
@@ -147,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void autoPayment(){
+    private void autoPaymentGetList(){
       String userid =  FirebaseAuth.getInstance().getUid();
         final Query payments = db.collection("users").document(userid).collection("payments").whereEqualTo("pIsPayed", false);
         payments.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -156,7 +159,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onSuccess: Found stuff");
                 if (!queryDocumentSnapshots.isEmpty()){
                     for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()){
-                        Log.d(TAG, "onSuccess: " + document.getId());
+                        Log.d(TAG, "onSuccess: Printing payment id(s): " + document.getId());
+                        accountUpdate(document);
                     }
                 }
             }
@@ -164,6 +168,33 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "onFailure: Found no stuff");
+            }
+        });
+
+
+    }
+
+    private void accountUpdate(DocumentSnapshot documentSnapshot){
+        String userid =  FirebaseAuth.getInstance().getUid();
+        String documentID = documentSnapshot.getString("pAccountFromId");
+        Log.d(TAG, "accountUpdate: " + documentSnapshot.getString("pAccountFromId"));
+        final double paymentAmount = documentSnapshot.getDouble("pAmount");
+        final DocumentReference accountRef = db.collection("users").document(userid).collection("accounts").document(documentID);
+        final WriteBatch batch = db.batch();
+        accountRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot accountDoc) {
+                if (accountDoc.exists()){
+                    double oldBalance = accountDoc.getDouble("aAmount");
+                    double newBalance = (oldBalance - paymentAmount);
+
+                    batch.update(accountRef,"aAmount",newBalance);
+                    batch.commit();
+                    Log.d(TAG, "onSuccess: Commit Done");
+
+                } else {
+                    Log.d(TAG, "onSuccess: No File found");
+                }
             }
         });
 
