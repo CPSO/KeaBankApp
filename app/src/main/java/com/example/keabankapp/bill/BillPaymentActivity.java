@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -18,19 +20,29 @@ import android.widget.TextView;
 
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.R;
+import com.example.keabankapp.models.PaymentModel;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class BillPaymentActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
     //TAG
@@ -48,7 +60,10 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     //Variables
     private String userID;
     private String selectedAccountID;
+    private String date;
     private Double selectedAccountBalance;
+    private boolean isAuto;
+    private boolean isSameDate = false;
 
 
     @Override
@@ -76,8 +91,38 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        String date = "month/day/year: " + month + "/" + dayOfMonth + "/" + year;
-        datePicker.setText(date);
+        month = month + 1;
+        String dateshow = dayOfMonth + "/" + month + "/" + year;
+        date = dayOfMonth + "-" + month + "-" + year;
+        datePicker.setText(dateshow);
+        getDateFromString(date);
+        Log.d(TAG, "onDateSet: " + getDateFromString(date));
+
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        Date today = new Date();
+        try {
+            Date todayWithZeroTime = formatter.parse(formatter.format(today));
+                if (getDateFromString(date).equals(todayWithZeroTime)){
+                    Log.d(TAG, "onDateSet: SAME DATE");
+                    isSameDate = true;
+                } else {
+                    Log.d(TAG, "onDateSet: NOT SAME DATE");
+                }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+    public Date getDateFromString(String datetoSaved){
+        try {
+            Date date = format.parse(datetoSaved);
+            return date ;
+        } catch (ParseException e){
+            return null ;
+        }
+
     }
 
 
@@ -130,11 +175,91 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     }
 
 
+    private View.OnClickListener onClickSubmit = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (!validateForm()) {
+                return;
+            }
+            double payment = Double.parseDouble(paymentAmount.getText().toString());
+            if (selectedAccountBalance < payment )
+            {
+                Log.d(TAG, "onClick: Balance Check: Low Balance!");
+            } else {
+                Log.d(TAG, "onClick: Balance Check: Balance OK!");
+                makePayment();
+            }
+        }
+    };
+
+    private void makePayment(){
+        CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
+        String pTitle = paymentName.getText().toString();
+        String pAccountFromId = selectedAccountID;
+        String pAccountToId = accountReciver.getText().toString();
+        double pAmount = Double.parseDouble(paymentAmount.getText().toString());
+        Date pPayTime = getDateFromString(date);
+        Timestamp pPaymentMade = Timestamp.now();
+        boolean pAutoPayment = isAuto;
+        boolean pIsPayed = false;
+
+        paymentRef.add(new PaymentModel(pTitle,pAccountFromId,pAccountToId,pAmount,pPayTime,pPaymentMade,pAutoPayment,pIsPayed)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.d(TAG, "onSuccess: added payment");
+                finish();
+            }
+        });
+
+
+
+        }
+
+    private CompoundButton.OnCheckedChangeListener checkedListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (isChecked) {
+                Log.d(TAG, "onCheckedChanged: Checkbox is checked");
+                isAuto = true;
+            } else {
+                Log.d(TAG, "onCheckedChanged: Checkbox is unChecked");
+                isAuto = false;
+
+            }
+        }
+    };
 
 
 
 
 
+
+    private boolean validateForm() {
+        boolean valid = true;
+
+        String payAmount = paymentAmount.getText().toString();
+        if (TextUtils.isEmpty(payAmount)) {
+            paymentAmount.setError("Required.");
+            valid = false;
+        } else {
+            paymentAmount.setError(null);
+        }
+
+        String payName = paymentName.getText().toString();
+        if (TextUtils.isEmpty(payName)){
+            paymentName.setError("Required.");
+        } else {
+            paymentName.setError(null);
+        }
+
+        String payAccountTo = accountReciver.getText().toString();
+        if (TextUtils.isEmpty(payAccountTo)){
+            accountReciver.setError("Required.");
+        } else {
+            accountReciver.setError(null);
+        }
+        return valid;
+    }
 
     /*
         setupFirebaseAuth is to see if there is a user signed in or not.
@@ -178,7 +303,9 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         spinnerAccount = findViewById(R.id.spinnerPaymentAccount);
         accountAmountTV = findViewById(R.id.tvSelectedAccountBalance);
         buttonSubmit = findViewById(R.id.btnSubmitPayment);
+        buttonSubmit.setOnClickListener(onClickSubmit);
         autoPayment = findViewById(R.id.cbAutoPay);
+        autoPayment.setOnCheckedChangeListener(checkedListener);
     }
     //Runs when activity loads, and actions happens
     @Override
