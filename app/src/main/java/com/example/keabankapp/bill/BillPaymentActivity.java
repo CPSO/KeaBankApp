@@ -1,4 +1,9 @@
 package com.example.keabankapp.bill;
+//FIXME A list of a gameplan:
+// - Make a PayNow method that pays the bills today. sets isPayed true and saves it in payments collection.
+// - Make a Later Date payment, that saves the bill for a later date, sets isPlayed false.
+// - Make a Mehod for MainActivity to all not paid bills and checks the date if they needs to be paid.
+
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -169,7 +174,6 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 Log.d(TAG, "onNothingSelected: setting selected ID to index 0");
                 selectedAccountBalance = accountsBalance.get(0);
                 accountAmountTV.setText(Double.toString(selectedAccountBalance));
-
             }
         });
     }
@@ -187,10 +191,34 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 Log.d(TAG, "onClick: Balance Check: Low Balance!");
             } else {
                 Log.d(TAG, "onClick: Balance Check: Balance OK!");
-                makePayment();
+                    if (isSameDate = true){
+                        payNow();
+                    } else {
+                        makePayment();
+
+                    }
             }
         }
     };
+
+    private void payNow() {
+        CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
+        String pTitle = paymentName.getText().toString();
+        String pAccountFromId = selectedAccountID;
+        String pAccountToId = accountReciver.getText().toString();
+        double pAmount = Double.parseDouble(paymentAmount.getText().toString());
+        Date pPayTime = getDateFromString(date);
+        Timestamp pPaymentMade = Timestamp.now();
+        boolean pAutoPayment = isAuto;
+        boolean pIsPayed = true;
+
+        /*
+            Tast 1 Remove Balance on selected account
+            Tast 2 Add payment to DB
+            Finish
+         */
+
+    }
 
     private void makePayment(){
         CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
@@ -207,7 +235,6 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
             @Override
             public void onSuccess(DocumentReference documentReference) {
                 Log.d(TAG, "onSuccess: added payment");
-                finish();
             }
         });
 
@@ -325,3 +352,4 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
 
     }
 }
+
