@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -34,6 +35,7 @@ public class BillPaymentActivity extends AppCompatActivity {
     private static final String TAG = "BillPaymentActivity";
     //Widgets
     private EditText datePicker,paymentAmount,paymentName,accountReciver;
+    //private DatePicker datePicker;
     private Spinner spinnerAccount;
     private TextView accountAmountTV;
     private Button buttonSubmit;
