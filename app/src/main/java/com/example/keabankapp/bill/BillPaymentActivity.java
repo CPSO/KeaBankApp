@@ -305,9 +305,6 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 Log.d(TAG, "onFailure: some Transfer notes failed");
             }
         });
-
-
-
     }
 
 
@@ -375,7 +372,7 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                         if (nemIDValue.equals(selectedValueString)){
                             Log.d(TAG, "onClick: " + nemIDValue + " = " + selectedValueString);
                             Toast.makeText(BillPaymentActivity.this,"Sending Money", Toast.LENGTH_LONG).show();
-                            //transferMoney();
+
 
                         } else {
                             Log.d(TAG, "onClick: " + nemIDValue + " != " + selectedValueString);

@@ -21,12 +21,15 @@ import com.example.keabankapp.adapter.AccountAdapter;
 import com.example.keabankapp.bill.BillMainActivity;
 import com.example.keabankapp.models.AccountModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 
 import java.util.Objects;
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
 
     private AccountAdapter adapter;
 
+    private String userID;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: Called");
         setUpRecyclerView();
         setupFirebaseAuth();
+        autoPayment();
 
     }
     @Override
@@ -141,6 +147,29 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void autoPayment(){
+      String userid =  FirebaseAuth.getInstance().getUid();
+        final Query payments = db.collection("users").document(userid).collection("payments").whereEqualTo("pIsPayed", false);
+        payments.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                Log.d(TAG, "onSuccess: Found stuff");
+                if (!queryDocumentSnapshots.isEmpty()){
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()){
+                        Log.d(TAG, "onSuccess: " + document.getId());
+                    }
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d(TAG, "onFailure: Found no stuff");
+            }
+        });
+
+
+    }
+
 
 
 
@@ -154,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-
                     Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
 
                 } else {
