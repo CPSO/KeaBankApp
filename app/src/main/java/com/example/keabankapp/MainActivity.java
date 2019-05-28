@@ -38,6 +38,9 @@ import com.google.firebase.firestore.WriteBatch;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -164,19 +167,21 @@ public class MainActivity extends AppCompatActivity {
         DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         Date today = new Date();
         final Date todayWithZeroTime =formatter.parse(formatter.format(today));
-
-
         final Query payments = db.collection("users").document(userid).collection("payments").whereEqualTo("pIsPayed", false);
         payments.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                 Log.d(TAG, "onSuccess: Found stuff");
                 if (!queryDocumentSnapshots.isEmpty()){
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()){
+                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments() ){
                         Log.d(TAG, "onSuccess: Printing payment id(s): " + document.getId());
                         if (document.getTimestamp("pPayTime").toDate().equals(todayWithZeroTime)){
                             Log.d(TAG, "payTime is true " + document.getTimestamp("pPayTime").toDate());
-                            accountUpdate(document);
+                            try {
+                                accountUpdate(document);
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
                         } else {
                             Log.d(TAG, "payTime is false: Payment Day at:  " + document.getTimestamp("pPayTime").toDate().toString());
                             Log.d(TAG, "payTime is false: " + todayWithZeroTime);
@@ -194,12 +199,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void accountUpdate(DocumentSnapshot documentSnapshot){
+    private void accountUpdate(final DocumentSnapshot documentSnapshot) throws ParseException {
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        Date addedMonth = new Date();
+        final Date todayWithZeroTime = formatter.parse(formatter.format(addedMonth));
+
+
         String userid =  FirebaseAuth.getInstance().getUid();
         String documentID = documentSnapshot.getString("pAccountFromId");
+        String paymentID = documentSnapshot.getId();
         Log.d(TAG, "accountUpdate: " + documentSnapshot.getString("pAccountFromId"));
         final double paymentAmount = documentSnapshot.getDouble("pAmount");
         final DocumentReference accountRef = db.collection("users").document(userid).collection("accounts").document(documentID);
+        final DocumentReference paymentRef = db.collection("users").document(userid).collection("payments").document(paymentID);
         final WriteBatch batch = db.batch();
         accountRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -209,6 +221,12 @@ public class MainActivity extends AppCompatActivity {
                     double newBalance = (oldBalance - paymentAmount);
 
                     batch.update(accountRef,"aAmount",newBalance);
+                    batch.update(paymentRef,"pIsPayed",true);
+                    if (documentSnapshot.getBoolean("pAutoPayment")){
+                        batch.update(paymentRef,"pPayTime",todayWithZeroTime);
+                        batch.update(paymentRef,"pIsPayed",false);
+                        Log.d(TAG, "onSuccess: AutoPayment Detected ");
+                    }
                     batch.commit();
                     Log.d(TAG, "onSuccess: Commit Done");
 
