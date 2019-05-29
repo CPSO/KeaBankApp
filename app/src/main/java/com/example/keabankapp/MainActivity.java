@@ -39,6 +39,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
@@ -201,8 +202,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void accountUpdate(final DocumentSnapshot documentSnapshot) throws ParseException {
         DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        Date addedMonth = new Date();
-        final Date todayWithZeroTime = formatter.parse(formatter.format(addedMonth));
+        Date date = new Date();
+        final Date todayWithZeroTime = formatter.parse(formatter.format(date));
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.MONTH, 1);
+        final Date addedMonth = calendar.getTime();
+        Log.d(TAG, "accountUpdate: THIS IS THE NEW DATE " + addedMonth);
+
+
 
 
         String userid =  FirebaseAuth.getInstance().getUid();
@@ -223,9 +232,10 @@ public class MainActivity extends AppCompatActivity {
                     batch.update(accountRef,"aAmount",newBalance);
                     batch.update(paymentRef,"pIsPayed",true);
                     if (documentSnapshot.getBoolean("pAutoPayment")){
-                        batch.update(paymentRef,"pPayTime",todayWithZeroTime);
+                        batch.update(paymentRef,"pPayTime",addedMonth);
                         batch.update(paymentRef,"pIsPayed",false);
                         Log.d(TAG, "onSuccess: AutoPayment Detected ");
+                        Log.d(TAG, "onSuccess: setting new month and payed to false");
                     }
                     batch.commit();
                     Log.d(TAG, "onSuccess: Commit Done");
