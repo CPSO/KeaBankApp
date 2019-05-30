@@ -74,13 +74,15 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     //Variables
     private String userID;
     private String selectedAccountID;
-    private String date;
+    private String stringDate;
+    private Date returnDate;
     private Double selectedAccountBalance;
     private boolean isAuto;
     private boolean isSameDate = false;
     private SparseIntArray nemCode = new SparseIntArray();
     private static final String TV_KEY = "";
-    private static final String DATE_KEY = "";
+    private String DATE_KEY = "";
+    private static final Date SOME_DATE = null;
 
 
 
@@ -112,17 +114,18 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         month = month + 1;
-        String dateshow = dayOfMonth + "/" + month + "/" + year;
-        date = dayOfMonth + "-" + month + "-" + year;
+        String dateshow = dayOfMonth + "-" + month + "-" + year;
+        stringDate = dayOfMonth + "-" + month + "-" + year;
         datePicker.setText(dateshow);
-        getDateFromString(date);
-        Log.d(TAG, "onDateSet: " + getDateFromString(date));
+        getDateFromString(stringDate);
+        Log.d(TAG, "onDateSet: " + getDateFromString(stringDate));
 
         DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         Date today = new Date();
         try {
             Date todayWithZeroTime = formatter.parse(formatter.format(today));
-                if (getDateFromString(date).equals(todayWithZeroTime)){
+                if (getDateFromString(stringDate).equals(todayWithZeroTime)){
+                    Log.d(TAG, "onDateSet: " + returnDate.toString() + todayWithZeroTime.toString());
                     Log.d(TAG, "onDateSet: SAME DATE");
                     isSameDate = true;
                     Log.d(TAG, "onDateSet: " + isSameDate);
@@ -140,9 +143,11 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
     public Date getDateFromString(String datetoSaved){
         try {
-            Date date = format.parse(datetoSaved);
-            return date ;
+            returnDate = format.parse(datetoSaved);
+            return returnDate;
         } catch (ParseException e){
+
+            Log.d(TAG, "getDateFromString: " + e.toString());
             return null ;
         }
 
@@ -228,7 +233,7 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
        final String pAccountFromId = selectedAccountID;
        final String pAccountToId = accountReciver.getText().toString();
        final double pAmount = Double.parseDouble(paymentAmount.getText().toString());
-       final Date pPayTime = getDateFromString(date);
+       final Date pPayTime = returnDate;
        final Timestamp pPaymentMade = Timestamp.now();
        final boolean pAutoPayment = isAuto;
        final boolean pIsPayed = true;
@@ -325,7 +330,7 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         String pAccountFromId = selectedAccountID;
         String pAccountToId = accountReciver.getText().toString();
         double pAmount = Double.parseDouble(paymentAmount.getText().toString());
-        Date pPayTime = getDateFromString(date);
+        Date pPayTime = returnDate;
         Timestamp pPaymentMade = Timestamp.now();
         boolean pAutoPayment = isAuto;
         final boolean pIsPayed = false;
@@ -383,9 +388,11 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                         if (nemIDValue.equals(selectedValueString)){
                             Log.d(TAG, "onClick: " + nemIDValue + " = " + selectedValueString);
                             if (isSameDate = true){
+                                Log.d(TAG, "onClick: NEMID Calls for PAYNOW");
                                 payNow();
                             } else {
                                 makePayment();
+                                Log.d(TAG, "onClick: NEMID Calls for makePayment");
 
                             }
 
@@ -518,17 +525,24 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.d(TAG, "onSaveInstanceState called");
-        outState.putString(TV_KEY, datePicker.getText().toString());
-        outState.putString(DATE_KEY,date);
+        outState.putString(DATE_KEY,stringDate);
+        outState.putString("saveText",stringDate);
+        Log.d(TAG, "onSaveInstanceState: " + stringDate);
+        Log.d(TAG, "onSaveInstanceState: state of isSameDate:" + isSameDate);
+
 
 
     }
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        Log.d(TAG, "onRestoreInstance() called with " + savedInstanceState.toString());
+        Log.d(TAG, "onRestoreInstance() called with " + savedInstanceState.getString("saveText"));
+        getDateFromString(savedInstanceState.getString("saveText"));
+        Log.d(TAG, "onRestoreInstanceState: " + getDateFromString(savedInstanceState.getString("saveText")));
+        Log.d(TAG, "onRestoreInstanceState: state of isSameDate " + isSameDate);
+        stringDate = savedInstanceState.getString("saveText");
+        Log.d(TAG, "onRestoreInstanceState: what is string text" + stringDate);
         datePicker.setText(savedInstanceState.getString(TV_KEY));
-        date = DATE_KEY;
     }
 }
 
