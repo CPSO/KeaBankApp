@@ -13,7 +13,6 @@ import android.view.View;
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.R;
 import com.example.keabankapp.adapter.AccountBillAdapter;
-import com.example.keabankapp.adapter.AccountTransferAdapter;
 import com.example.keabankapp.models.PaymentModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;

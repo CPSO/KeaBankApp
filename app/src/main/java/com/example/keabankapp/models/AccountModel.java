@@ -1,5 +1,9 @@
 package com.example.keabankapp.models;
 
+/*
+    Cloud Firestore also supports writing your own Java objects with custom classes.
+    Cloud Firestore will internally convert the objects to supported data types.
+ */
 public class AccountModel {
     private String aName;
     private double aAmount;

@@ -13,7 +13,15 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.database.annotations.NotNull;
 import com.google.firebase.firestore.DocumentSnapshot;
+/*
+    Adapter: A subclass of RecyclerView.Adapter responsible for providing views that represent items in a data set.
+    FirestoreRecyclerAdapter — binds a Query to a RecyclerView and responds to all real-time events
+    included items being added, removed, moved, or changed.
+    Best used with small result sets since all results are loaded at once.
 
+    Binds and sets elements on the UI to the data it recives from firestore based on models.
+
+ */
 
 public class AccountAdapter extends FirestoreRecyclerAdapter<AccountModel, AccountAdapter.AccountHolder> {
     private onItemClickListener listener;

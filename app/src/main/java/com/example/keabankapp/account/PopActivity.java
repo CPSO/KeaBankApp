@@ -2,10 +2,7 @@ package com.example.keabankapp.account;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.icu.util.ValueIterator;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -30,10 +27,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.WriteBatch;
-
-import java.util.Date;
-import java.util.Objects;
 
 
 public class PopActivity extends Activity {
@@ -102,6 +95,9 @@ public class PopActivity extends Activity {
                 });
     }
 
+    /*
+        Updates the balance on the selected account and makes a transaction history based on the amount and time
+     */
     public void updateBalance(){
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -174,8 +170,17 @@ public class PopActivity extends Activity {
     };
 
 
-    //Checks the state of the user that is sign in.
-    //ether the user is active or is signing out
+    /*
+       setupFirebaseAuth is to see if there is a user signed in or not.
+       if the user is signed in no action is taken.
+       If a user is not signed in, a intent in startet to take the user back
+       to the login screen.
+       The intent has two modifiers. NEW_TASK and CLEAR_TASK.
+       NEW_TASK sets the intent as a root in the task manager
+       CLEAR_TASK Clears the task log before starting a new task.
+       That means that the user cannot go back to the last page
+       if this was triggered
+    */
     private void setupFirebaseAuth(){
         Log.d(TAG, "setupFirebaseAuth: started.");
 

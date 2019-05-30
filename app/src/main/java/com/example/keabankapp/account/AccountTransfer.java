@@ -524,7 +524,13 @@ public class AccountTransfer extends AppCompatActivity {
             searchForUser();
         }
     };
+    /*
+        Listener for the switch on the UI.
+        This switch swaps between local and global money transfer.
+        It hides some elements and shows other based on the state by setting the visability to
+        GONE or VISIBLE (They are complete gone from the view or shown)
 
+     */
     private CompoundButton.OnCheckedChangeListener changeListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -573,7 +579,12 @@ public class AccountTransfer extends AppCompatActivity {
     }
 
 
-
+    /*
+    @validateFrom
+    Checks if the editText boxes have content in them
+    if no text, a error is set to alert the user and sets valid to false
+    if text error is null, and valid is true
+    */
     private boolean validateForm() {
         boolean valid = true;
 
@@ -587,8 +598,6 @@ public class AccountTransfer extends AppCompatActivity {
         return valid;
     }
 
-
-
     private void setupNemCode(){
         //#Key - Value
         nemCode.put(1278,3298);
@@ -601,13 +610,11 @@ public class AccountTransfer extends AppCompatActivity {
     private void init(){
 
         btnSubmit = findViewById(R.id.btnTransfSubmit);
-        //spinnerFromAccount = findViewById(R.id.accountFromName);
         spinnerToAccount = findViewById(R.id.spinnerToAccount);
         spinnerGlobal = findViewById(R.id.spinnerGlobal);
         btnSubmit.setOnClickListener(onClickSubmitTransf);
         tvAccountName = findViewById(R.id.tvAccountName);
         etAccountToEmail = findViewById(R.id.etAccountEmail);
-        //btnGlobalSubmit.setOnClickListener(onClickGlobalSubmit);
         btnGetData = findViewById(R.id.btnGetData);
         btnGetData.setOnClickListener(onClickGetData);
         aSwitch = findViewById(R.id.switch1);

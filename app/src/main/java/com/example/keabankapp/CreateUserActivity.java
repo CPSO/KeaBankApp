@@ -31,7 +31,6 @@ public class CreateUserActivity extends AppCompatActivity {
     //Firebase
     private FirebaseAuth.AuthStateListener mAuthListener;
     //Log TAG
-    private static final int ERROR_DIALOG_REQUEST = 9001;
     EditText uFName, uLName, uMail, uPhoneNumber, uPassword, uUserAge;
     EditText uHomeAddress, uAddressZipcode;
     TextView bankLocCPH, bankLocOds;
