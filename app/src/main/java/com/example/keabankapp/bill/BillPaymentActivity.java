@@ -1,9 +1,4 @@
 package com.example.keabankapp.bill;
-//FIXME A list of a gameplan:
-// # Make a PayNow method that pays the bills today. sets isPayed true and saves it in payments collection.
-// - Make a Later Date payment, that saves the bill for a later date, sets isPlayed false.
-// - Make a Mehod for MainActivity to all not paid bills and checks the date if they needs to be paid.
-
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -44,7 +39,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -55,7 +49,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 public class BillPaymentActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
@@ -79,10 +72,18 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     private Double selectedAccountBalance;
     private boolean isAuto;
     private boolean isSameDate = false;
+    /*
+        @SparseIntArray
+            SparseIntArrays map integers to integers just like maps
+            Using a binary search to find keys
+            not intended to be appropriate for data structures that may contain large numbers of items
+            it avoids auto-boxing keys and values and its data structure doesn't rely on an extra entry object for each mapping.
+            For containers holding up to hundreds of items, the performance difference is not significant, less than 50%.
+            Docs: https://developer.android.com/reference/android/util/SparseIntArray
+     */
     private SparseIntArray nemCode = new SparseIntArray();
     private static final String TV_KEY = "";
     private String DATE_KEY = "";
-    private static final Date SOME_DATE = null;
 
 
 
@@ -95,7 +96,10 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         setupNemCode();
         init();
     }
-
+    /*
+        DialogPicker makes the user able to select a date from a calender UI.
+        it request the DatePickerDialog implementation
+     */
     private View.OnClickListener onClickDatePicker = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -111,6 +115,14 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         datePickerDialog.show();
     }
 
+    /*
+        @onDateSet
+        When the user selects a date, the method picks up the date and sets the view
+        the getDateFromString method converts the stringDate to a Date and returns returnDate
+        this value is used for saving a Date obj to firestore.
+        Todays date and the selected date is also compared to see if the payment needs to be today
+        this proces is done by compareing them as strings
+     */
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         month = month + 1;
@@ -140,6 +152,10 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
 
     }
 
+    /*
+        @getDateFromString
+        parses the dateString as a returnDate with the format from SimpleDateFormat
+     */
     static final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
     public Date getDateFromString(String datetoSaved){
         try {
@@ -153,7 +169,11 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
 
     }
 
-
+    /*
+        @setupSpinner
+        Sets the spinner with data from firestore.
+        It saves the data in difrent arrays, to be selected when the user pressed on them
+     */
     private void setupSpinner(){
         CollectionReference accountRef = db.collection("users").document(userID).collection("accounts");
         final List<String> accountsName = new ArrayList<>();
@@ -201,7 +221,10 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         });
     }
 
-
+    /*
+        Checks to see if fields is valid before run.
+        also checks if the balance is OK.
+     */
     private View.OnClickListener onClickSubmit = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -225,6 +248,15 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         }
     };
 
+    /*
+        @payNow
+        Method for payment if date selected = current date.
+        Gets data from UI
+        Checks again if the balance is OK
+        adds a document to paymentRef
+        updates the balance of the selcted account
+        makes a transaction history for the selected account
+     */
     private void payNow() {
         Log.d(TAG, "payNow: Called");
        final CollectionReference paymentRef = db.collection("users").document(userID).collection("payments");
@@ -280,14 +312,6 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 Log.d(TAG, "onFailure: Error getting accountBalanceRef");
             }
         });
-
-
-        /*
-            Tast 1 Remove Balance on selected account
-            Tast 2 Add payment to DB
-            Finish
-         */
-
     }
 
     private void makeTransactionHistory(){
@@ -322,6 +346,12 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     }
 
 
+    /*
+        @makePayment
+        If the date selected is not today, makePayment is called
+        this method creates a document in the payment collection and sets isPayed = false.
+        This allows the auto payment method on the MainActivity to get the document and check it
+     */
 
     private void makePayment(){
         Log.d(TAG, "makePayment: Called");
@@ -342,11 +372,11 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 finish();
             }
         });
-
-
-
         }
 
+        /*
+            Checks the state of the Auto Payment button
+         */
     private CompoundButton.OnCheckedChangeListener checkedListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -361,7 +391,14 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         }
     };
 
-
+    /*
+        @nemID
+        This method is to simulate the nemID functionality.
+        When the user presses the submit button the method selects a random key from the SparseInt list
+        The user then gets a AlertDialog to write the values corisponding to the key.
+        IF the user fails the user can try again with a new key/value
+        If the user is suscesful the makePayment or payNow method are called
+     */
     private void nemID(){
         int size = nemCode.size();
         Random r = new Random();
@@ -415,7 +452,12 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
 
 
 
-
+    /*
+        @validateFrom
+        Checks if the editText boxes have content in them
+        if no text, a error is set to alert the user and sets valid to false
+        if text error is null, and valid is true
+     */
     private boolean validateForm() {
         boolean valid = true;
 
@@ -484,6 +526,9 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         };
     }
 
+    /*
+        Populates the sparseIntArray
+     */
     private void setupNemCode(){
         //#Key - Value
         nemCode.put(1278,3298);
@@ -491,6 +536,9 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         nemCode.put(8264,7304);
         nemCode.put(7615,6931);
     }
+    /*
+        Bind the Java objects to the UI elements via the R.id List
+     */
     private void init(){
         datePicker = findViewById(R.id.tvDatePicker);
         datePicker.setOnClickListener(onClickDatePicker);
@@ -521,6 +569,9 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         }
     }
 
+    /*
+        Runs when the user truns the device
+     */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -529,10 +580,10 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         outState.putString("saveText",stringDate);
         Log.d(TAG, "onSaveInstanceState: " + stringDate);
         Log.d(TAG, "onSaveInstanceState: state of isSameDate:" + isSameDate);
-
-
-
     }
+    /*
+        Runs when the user stops turning
+     */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
