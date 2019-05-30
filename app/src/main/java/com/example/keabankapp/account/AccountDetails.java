@@ -1,9 +1,7 @@
 package com.example.keabankapp.account;
 
 import android.content.Intent;
-import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,12 +14,8 @@ import android.widget.Toast;
 
 import com.example.keabankapp.LoginActivity;
 import com.example.keabankapp.R;
-import com.example.keabankapp.adapter.AccountAdapter;
 import com.example.keabankapp.adapter.AccountTransferAdapter;
-import com.example.keabankapp.models.AccountModel;
 import com.example.keabankapp.models.AccountTransactionModel;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -97,6 +91,9 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    /*
+        sets the text on the activity acording to the data on firestore
+     */
     private void loadDataFromFirestore(){
         Log.d(TAG, "setDataFromFirestore: " + FirebaseAuth.getInstance().getCurrentUser());
         Log.d(TAG, "loadDataFromFirestore: called account id with: " + accountID);
@@ -133,7 +130,7 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
 
 
 
-    //sends a query to the Firestore based of the courseListRef, and order it by courseName
+    //sends a query to the Firestore based of the accountTransRef, and order it by timestamp time
     private void setUpRecyclerView() {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -153,34 +150,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         recyclerView.setAdapter(adapter);
     }
 
-/*
-    private void loadTransactions(){
-            db.collection(userId).document("accounts")
-                .collection("accounts").document(accountID).collection("transactions").get()
-                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                @Override
-                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                    String data = "";
-                    for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots){
-                        AccountTransactionModel model = documentSnapshot.toObject(AccountTransactionModel.class);
-                        model.settDocumentId(documentSnapshot.getId());
-                        String docID = model.gettDocumentId();
-                        String type = model.gettType();
-                        double amount = model.gettAmount();
-                        Timestamp timestamp = model.gettTimestamp();
-                        Log.d(TAG, "onSuccess: " + docID);
-
-                        data += "ID: " + docID + " \ntype: " + type + " \namount: " + amount + " \ntimestamp: " + timestamp;
-
-
-                    }
-                    tvTransactions.setText(data);
-
-                }
-            });
-
-    }
-*/
     private void setTitle(){
         String accNameForTitle;
         accNameForTitle = accName;
@@ -188,8 +157,17 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
 
     }
 
-    //Checks the state of the user that is sign in.
-    //ether the user is active or is signing out
+    /*
+       setupFirebaseAuth is to see if there is a user signed in or not.
+       if the user is signed in no action is taken.
+       If a user is not signed in, a intent in startet to take the user back
+       to the login screen.
+       The intent has two modifiers. NEW_TASK and CLEAR_TASK.
+       NEW_TASK sets the intent as a root in the task manager
+       CLEAR_TASK Clears the task log before starting a new task.
+       That means that the user cannot go back to the last page
+       if this was triggered
+    */
     private void setupFirebaseAuth(){
         Log.d(TAG, "setupFirebaseAuth: started.");
 
@@ -211,17 +189,6 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
             }
         };
     }
-/*
-    private View.OnClickListener onClickDepositMoney = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            Log.d(TAG, "onClickDeposit: called ");
-            Intent intent = new Intent(AccountDetails.this, PopActivity.class);
-            intent.putExtra("accountID", DocumentID);
-            startActivity(intent);
-        }
-    };
-    */
 
 
     //Runs when activity loads, and actions happens
@@ -256,7 +223,11 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
 
     }
 
-
+    /*
+        OnClick switch cases
+        uses the XML layout to know what button has been pressed
+        requrest to implement View.onClickListener
+     */
     @Override
     public void onClick(View v) {
         switch (v.getId()){

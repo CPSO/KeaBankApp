@@ -41,7 +41,13 @@ public class BillListActivity extends AppCompatActivity {
         fab.setOnClickListener(onClickFab);
 
     }
-    //sends a query to the Firestore based of the courseListRef, and order it by courseName
+    /*
+        @setUpRecyclerView
+        Takes a Quary to make a list of documents that is displayed on the activity
+        Uses the Payment Model and AcountBillAdapter
+        An Adapter object acts as a bridge between an AdapterView and the underlying data for that view.
+        The Adapter provides access to the data items. The Adapter is also responsible for making a View for each item in the data set.
+     */
     private void setUpRecyclerView() {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -68,7 +74,17 @@ public class BillListActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-
+    /*
+           setupFirebaseAuth is to see if there is a user signed in or not.
+           if the user is signed in no action is taken.
+           If a user is not signed in, a intent in startet to take the user back
+           to the login screen.
+           The intent has two modifiers. NEW_TASK and CLEAR_TASK.
+           NEW_TASK sets the intent as a root in the task manager
+           CLEAR_TASK Clears the task log before starting a new task.
+           That means that the user cannot go back to the last page
+           if this was triggered
+        */
     private void setupFirebaseAuth(){
         Log.d(TAG, "setupFirebaseAuth: started");
 

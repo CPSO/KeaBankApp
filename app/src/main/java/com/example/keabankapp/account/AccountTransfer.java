@@ -89,8 +89,17 @@ public class AccountTransfer extends AppCompatActivity {
         setupNemCode();
         setElements();
     }
-    //Checks the state of the user that is sign in.
-    //ether the user is active or is signing out
+    /*
+       setupFirebaseAuth is to see if there is a user signed in or not.
+       if the user is signed in no action is taken.
+       If a user is not signed in, a intent in startet to take the user back
+       to the login screen.
+       The intent has two modifiers. NEW_TASK and CLEAR_TASK.
+       NEW_TASK sets the intent as a root in the task manager
+       CLEAR_TASK Clears the task log before starting a new task.
+       That means that the user cannot go back to the last page
+       if this was triggered
+    */
     private void setupFirebaseAuth(){
         Log.d(TAG, "setupFirebaseAuth: started.");
 
@@ -129,7 +138,13 @@ public class AccountTransfer extends AppCompatActivity {
         }
     }
 
-
+    /*
+            @setupSpinner
+            Sets the spinner with data from firestore.
+            It saves the data in different arrays, to be selected when the user pressed on them
+            OnSelcted saves the selected account id based of position in array.
+            is used to store what account the money goes to
+         */
     private void setupSpinner(){
         final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -174,6 +189,8 @@ public class AccountTransfer extends AppCompatActivity {
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+                parent.setSelection(0);
+                Log.d(TAG, "onNothingSelected:");
 
             }
         });
@@ -188,7 +205,14 @@ public class AccountTransfer extends AppCompatActivity {
         });
     }
 
+    /*
+        Gives the user the abillity to search for another user to send money to.
+        This function is here to make the transfer ablility easyer, since no one can remeber the auto
+        genereted User ID numbers.
 
+        since only one user with that id exist it can save the document id as globalUserId to use.
+
+    */
     private void searchForUser(){
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
         String userEmail = etAccountToEmail.getText().toString();
@@ -202,11 +226,10 @@ public class AccountTransfer extends AppCompatActivity {
                         Log.d(TAG, "onSuccess: " + document.getId() + " - " + document.getData());
                         globalUserId = document.getId();
                         setupGlobalSpinner();
-
-
                     }
                 } else {
                     Log.d(TAG, "No User found: ");
+                    Toast.makeText(AccountTransfer.this, "No User Found", Toast.LENGTH_SHORT).show();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -215,27 +238,14 @@ public class AccountTransfer extends AppCompatActivity {
                 Log.d(TAG, "onFailure: Failed Query to Firestore" + e.getMessage());
             }
         });
-
-
-        db.collection("users")
-                .whereEqualTo("uEmail", userEmail) // <-- This line
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                Log.d(TAG, document.getId() + " => " + document.getData());
-                                Log.d(TAG, "onComplete:");
-                            }
-                        } else {
-                            Log.d(TAG, "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-
-
     }
+
+    /*
+        @setupGlobalSpinner
+        This spinner is used to display the account of the user found by the email search
+        saves values in difrent array and get selected based on selection in the spinner
+        with nothing selected it takes index 0
+     */
 
     private void setupGlobalSpinner(){
         final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -283,7 +293,17 @@ public class AccountTransfer extends AppCompatActivity {
         });
     }
 
+    /*
+        gets the money from the two selected accounts and compares to see if the user has enougth to
+        transfer.
 
+        Uses the task module to make asynchronous opporations.
+        This allows the app to get two lists at the same time and gives the abillity to do actions
+        on them both when they are complete.
+
+        Checks if a resault of both task exist, and if the balance is OK the nemID method is activated
+
+     */
     private void getTransferMoney(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -351,6 +371,14 @@ public class AccountTransfer extends AppCompatActivity {
     }
     }
 
+    /*
+           @nemID
+           This method is to simulate the nemID functionality.
+           When the user presses the submit button the method selects a random key from the SparseInt list
+           The user then gets a AlertDialog to write the values corisponding to the key.
+           IF the user fails the user can try again with a new key/value
+           If the user is suscesful the makePayment or payNow method are called
+        */
     private void nemID(){
         int size = nemCode.size();
         Random r = new Random();
@@ -390,9 +418,13 @@ public class AccountTransfer extends AppCompatActivity {
         dialog.show();
 
     }
+    /*
+        Updates the balance in the two selected account documents with the update
 
+        Update will only succeeded if the document exist.
+
+     */
     private void transferMoney(){
-        //creates a referance to the collection in Firestore
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -426,6 +458,11 @@ public class AccountTransfer extends AppCompatActivity {
         });
         finish();
     }
+
+    /*
+
+     */
+
     private void makeTransactionHistory(){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();

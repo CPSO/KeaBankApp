@@ -79,6 +79,12 @@ public class AccountCreate extends AppCompatActivity {
         };
     }
 
+    /*
+        @spinnerAdapter
+        Allows the user to select what type of account they want.
+        the spinner is made from a array
+        to get the value a onItemSelected is called and a position represent the index in the array
+     */
     private void spinnerAdapter(){
         ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_item, accountType);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item); // The drop down view
@@ -100,10 +106,21 @@ public class AccountCreate extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 parent.setSelection(0);
+                selectedAccountType = parent.getItemAtPosition(0).toString();
+
             }
         });
 
     }
+
+    /*
+        Takes the information by the UI and saves a document with set
+        Set means that if the document excise its overwritten if not
+        a new document is created
+        Uses the AccountModel to populate the corret fields
+
+        makes a toast
+     */
 
     private View.OnClickListener onClickCreateAccount = new View.OnClickListener() {
         @Override
@@ -119,8 +136,7 @@ public class AccountCreate extends AppCompatActivity {
                 double aAmount = 0.00;
                 String aType = selectedAccountType;
 
-                DocumentReference accountRef = FirebaseFirestore.getInstance()
-                        .collection("users").document(userId).collection("accounts").document();
+                DocumentReference accountRef = db.collection("users").document(userId).collection("accounts").document();
                 accountRef.set(new AccountModel(aName,aAmount,aType));
 
             Toast.makeText(AccountCreate.this, "Created a new account",
@@ -131,7 +147,12 @@ public class AccountCreate extends AppCompatActivity {
 
         }
     };
-
+    /*
+            @validateFrom
+            Checks if the editText boxes have content in them
+            if no text, a error is set to alert the user and sets valid to false
+            if text error is null, and valid is true
+         */
     private boolean validateForm() {
         boolean valid = true;
 
