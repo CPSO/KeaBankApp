@@ -79,6 +79,9 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
     private boolean isAuto;
     private boolean isSameDate = false;
     private SparseIntArray nemCode = new SparseIntArray();
+    private static final String TV_KEY = "";
+    private static final String DATE_KEY = "";
+
 
 
 
@@ -208,11 +211,10 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                 Log.d(TAG, "onClick: Balance Check: Balance OK!");
                     if (isSameDate){
                         Log.d(TAG, "IsSameDate = true " + isSameDate);
-                        payNow();
+                        nemID();
                     } else {
                         Log.d(TAG, "IsSameDate = false " + isSameDate);
-                        makePayment();
-
+                        nemID();
                     }
             }
         }
@@ -380,6 +382,13 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
                         String nemIDValue = String.valueOf(nemidInputText.getText());
                         if (nemIDValue.equals(selectedValueString)){
                             Log.d(TAG, "onClick: " + nemIDValue + " = " + selectedValueString);
+                            if (isSameDate = true){
+                                payNow();
+                            } else {
+                                makePayment();
+
+                            }
+
                             Toast.makeText(BillPaymentActivity.this,"Sending Money", Toast.LENGTH_LONG).show();
 
 
@@ -409,6 +418,13 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
             valid = false;
         } else {
             paymentAmount.setError(null);
+        }
+        String date = datePicker.getText().toString();
+        if (TextUtils.isEmpty(date)) {
+            datePicker.setError("Required.");
+            valid = false;
+        } else  {
+            datePicker.setError(null);
         }
 
         String payName = paymentName.getText().toString();
@@ -496,7 +512,23 @@ public class BillPaymentActivity extends AppCompatActivity implements DatePicker
         if (mAuthListener != null) {
             FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
         }
+    }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "onSaveInstanceState called");
+        outState.putString(TV_KEY, datePicker.getText().toString());
+        outState.putString(DATE_KEY,date);
+
+
+    }
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d(TAG, "onRestoreInstance() called with " + savedInstanceState.toString());
+        datePicker.setText(savedInstanceState.getString(TV_KEY));
+        date = DATE_KEY;
     }
 }
 
