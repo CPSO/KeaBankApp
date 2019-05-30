@@ -9,11 +9,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".bill.BillPaymentActivity"></activity>
-        <activity
-            android:name=".bill.BillMainActivity"
-            android:label="@string/title_activity_bill_main"
-            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".bill.BillListActivity"></activity>
+        <activity android:name=".bill.BillPaymentActivity" />
         <activity android:name=".ResetPasswordActivity" />
         <activity android:name=".account.AccountTransfer" />
         <activity

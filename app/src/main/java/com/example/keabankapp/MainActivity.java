@@ -18,13 +18,11 @@ import android.widget.Toast;
 import com.example.keabankapp.account.AccountCreate;
 import com.example.keabankapp.account.AccountDetails;
 import com.example.keabankapp.adapter.AccountAdapter;
-import com.example.keabankapp.bill.BillMainActivity;
+import com.example.keabankapp.bill.BillListActivity;
 import com.example.keabankapp.models.AccountModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -38,12 +36,8 @@ import com.google.firebase.firestore.WriteBatch;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -89,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.bill_page:
                 Log.d(TAG, "onOptionsItemSelected: bill_page");
-                Intent intent = new Intent(MainActivity.this, BillMainActivity.class);
+                Intent intent = new Intent(MainActivity.this, BillListActivity.class);
                 startActivity(intent);
                 return true;
             case R.id.card_page:
@@ -167,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
         DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         Date today = new Date();
-        final Date todayWithZeroTime =formatter.parse(formatter.format(today));
+        final Date todayWithZeroTime = formatter.parse(formatter.format(today));
         final Query payments = db.collection("users").document(userid).collection("payments").whereEqualTo("pIsPayed", false);
         payments.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override

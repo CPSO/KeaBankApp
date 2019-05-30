@@ -42,8 +42,8 @@ public class AccountTransferAdapter extends FirestoreRecyclerAdapter<AccountTran
         public TransferHolder(@NonNull View itemView) {
             super(itemView);
             tvTransListAmount = itemView.findViewById(R.id.trans_list_amount);
-            tvTransListTime = itemView.findViewById(R.id.trans_list_time);
-            tvTransListType = itemView.findViewById(R.id.trans_list_type);
+            tvTransListTime = itemView.findViewById(R.id.payment_list_nextpay);
+            tvTransListType = itemView.findViewById(R.id.payment_list_name);
             //tvAccName = itemView.findViewById(R.id.tvAccountName);
             //tvAccBalance = itemView.findViewById(R.id.tvAccountBalance);
         }

@@ -22,7 +22,7 @@
 
 
         <TextView
-            android:id="@+id/trans_list_amount"
+            android:id="@+id/payment_list_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Title"
@@ -39,7 +39,7 @@
             android:layout_marginTop="8dp"
             android:text="Description"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/trans_list_amount" />
+            app:layout_constraintTop_toBottomOf="@+id/payment_list_amount" />
 
         <TextView
             android:id="@+id/payment_list_name"
