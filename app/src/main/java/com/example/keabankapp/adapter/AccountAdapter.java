@@ -34,6 +34,7 @@ public class AccountAdapter extends FirestoreRecyclerAdapter<AccountModel, Accou
     protected void onBindViewHolder(@NotNull AccountHolder holder, int position, @NotNull AccountModel model){
         holder.tvAccName.setText(model.getaName());
         holder.tvAccBalance.setText(Double.toString(model.getaAmount()));
+        holder.tvAccountType.setText(model.getaType());
 
     }
 
@@ -47,12 +48,14 @@ public class AccountAdapter extends FirestoreRecyclerAdapter<AccountModel, Accou
     public class AccountHolder extends RecyclerView.ViewHolder {
         TextView tvAccName;
         TextView tvAccBalance;
+        TextView tvAccountType;
 
         public AccountHolder(@NotNull View itemView){
             super(itemView);
 
             tvAccName = itemView.findViewById(R.id.tvAccountName);
             tvAccBalance = itemView.findViewById(R.id.tvAccountBalance);
+            tvAccountType = itemView.findViewById(R.id.tvAccountType);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
