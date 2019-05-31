@@ -18,4 +18,15 @@ The App uses the Firestore to store, manage and control users and data. This mea
   * Deposit money prompts the user for an amount and a submit button
 * The Transfer Activity allows the user to either send money between accounts or other users using the app.
   * The activity has a switch to switch between modes.
-  
+  * Each deposit or transfer action will updates the accounts transaction history
+* On the main activity menu bar will you find the Bills tap, this activity allows you to pay a bill and sign up for monthly payment
+ * The Bill activity shows a list of Auto payments
+ * Pressing the FAB will take you to the make payment activity
+* The Bill Payment Activity allows the user to make a payment to a account.
+ * The user writes a name for the payment to identify it for later use
+ * Date for payment 
+ * The amount
+ * What account
+  * A balance is shown for the selected account
+ * The account numbe to recive the payment
+ * Last the user can select if they want automate payment.
