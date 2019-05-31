@@ -23,10 +23,19 @@ The App uses the Firestore to store, manage and control users and data. This mea
  * The Bill activity shows a list of Auto payments
  * Pressing the FAB will take you to the make payment activity
 * The Bill Payment Activity allows the user to make a payment to a account.
- * The user writes a name for the payment to identify it for later use
- * Date for payment 
- * The amount
- * What account
-  * A balance is shown for the selected account
- * The account numbe to recive the payment
- * Last the user can select if they want automate payment.
+  * The user writes a name for the payment to identify it for later use
+  * Date for payment 
+  * The amount
+  * What account
+   * A balance is shown for the selected account
+  * The account numbe to recive the payment
+  * Last the user can select if they want automate payment.
+ * Based on the date selected, if it is the current day, the money will get payed when the submit is pressed, it will wait until the day set is the current day.
+
+## Automated Payment
+This app features a semi automatic payment system, on payments that has the satus isPayed = false.
+When the user lands on the main activity page, a method is called to get all payments that has not been payed.
+It then checks the payment date on the bills to see if the date is the current date. if not nothing happens.
+If the paydate is the current date, a payment is made and a transaction history is made.
+It then checks to see if the payment is a auto payment, if not nothing happens and it stops.
+If it is a auto payment, it setes the next payment to next month. and setes isPayed = true.
