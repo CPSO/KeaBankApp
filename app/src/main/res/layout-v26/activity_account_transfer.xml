@@ -143,7 +143,8 @@
         android:inputType="textEmailAddress"
         app:layout_constraintEnd_toStartOf="@id/btnGetData"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvEnterEmailTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/tvEnterEmailTitle"
+        android:autofillHints="" />
 
     <TextView
         android:id="@+id/tvEnterEmailTitle"

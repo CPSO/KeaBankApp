@@ -139,9 +139,7 @@ public class AccountCreate extends AppCompatActivity {
                 DocumentReference accountRef = db.collection("users").document(userId).collection("accounts").document();
                 accountRef.set(new AccountModel(aName,aAmount,aType));
 
-            Toast.makeText(AccountCreate.this, "Created a new account",
-                    Toast.LENGTH_SHORT).show();
-
+            Toast.makeText(AccountCreate.this, getString(R.string.toast_created_account_succ), Toast.LENGTH_SHORT).show();;
                 finish();
 
 
@@ -158,7 +156,7 @@ public class AccountCreate extends AppCompatActivity {
 
         String acName = accountName.getText().toString();
         if (TextUtils.isEmpty(acName)) {
-            accountName.setError("Required.");
+            accountName.setError(getString(R.string.account_create_error));
             valid = false;
         } else {
             accountName.setError(null);
