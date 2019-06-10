@@ -64,6 +64,15 @@ public class AccountTransfer extends AppCompatActivity {
     TextView tvToTitle,tvSelectAccount,tvSelectEmail;
     private String accountID,accountToID;
     private double accountToBalance,accountFromBalance;
+    /*
+       @SparseIntArray
+           SparseIntArrays map integers to integers just like maps
+           Using a binary search to find keys
+           not intended to be appropriate for data structures that may contain large numbers of items
+           it avoids auto-boxing keys and values and its data structure doesn't rely on an extra entry object for each mapping.
+           For containers holding up to hundreds of items, the performance difference is not significant, less than 50%.
+           Docs: https://developer.android.com/reference/android/util/SparseIntArray
+    */
     private SparseIntArray nemCode = new SparseIntArray();
     private double valueFromET;
     private String globalUserId;
