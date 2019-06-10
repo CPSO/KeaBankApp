@@ -85,4 +85,6 @@
     <string name="account_list_title">Title</string>
     <string name="account_list_amount">Amount</string>
     <string name="account_list_type">Type</string>
+    <string name="btn_withdraw_money">Withdraw Money</string>
+    <string name="withdraw_error_age">Unable to withdraw: Age to low</string>
 </resources>

@@ -2,7 +2,6 @@ package com.example.keabankapp.adapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -54,7 +53,7 @@ public class AccountAdapter extends FirestoreRecyclerAdapter<AccountModel, Accou
             super(itemView);
 
             tvAccName = itemView.findViewById(R.id.tvAccountName);
-            tvAccBalance = itemView.findViewById(R.id.tvAccountBalance);
+            tvAccBalance = itemView.findViewById(R.id.tvTransferAccountBalance);
             tvAccountType = itemView.findViewById(R.id.tvAccountType);
 
             itemView.setOnClickListener(new View.OnClickListener() {

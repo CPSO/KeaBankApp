@@ -10,11 +10,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseIntArray;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -59,7 +55,7 @@ public class AccountTransfer extends AppCompatActivity {
     Spinner spinnerToAccount,spinnerGlobal;
     Button btnSubmit,btnGlobalSubmit,btnGetData;
     EditText etAmount,etAccountToEmail;
-    TextView tvAccountName;
+    TextView tvAccountName,tvAcountBalance;
     Switch aSwitch;
     TextView tvToTitle,tvSelectAccount,tvSelectEmail;
     private String accountID,accountToID;
@@ -72,6 +68,7 @@ public class AccountTransfer extends AppCompatActivity {
            it avoids auto-boxing keys and values and its data structure doesn't rely on an extra entry object for each mapping.
            For containers holding up to hundreds of items, the performance difference is not significant, less than 50%.
            Docs: https://developer.android.com/reference/android/util/SparseIntArray
+           Size difrent: https://stackoverflow.com/questions/25560629/sparsearray-vs-hashmap
     */
     private SparseIntArray nemCode = new SparseIntArray();
     private double valueFromET;
@@ -140,7 +137,12 @@ public class AccountTransfer extends AppCompatActivity {
             Log.d(TAG, "getIncomingIntent: found intent extras.");
 
             String idForAccount = getIntent().getStringExtra("accountID");
+            double balanceForAccount = getIntent().getDoubleExtra("accountBalance", 0.0);
+            Log.d(TAG, "getIncomingIntent: What is this double value: " + balanceForAccount);
             accountID = idForAccount;
+            String blob = Double.toString(balanceForAccount);
+            Log.d(TAG, "getIncomingIntent: WHAT IS THIS " + blob);
+            //tvAcountBalance.setText(blob);
             Log.d(TAG, "getIncomingIntent: accountID: " + idForAccount);
         } else {
             Log.d(TAG, "getIncomingIntent: No intent was had");
@@ -631,6 +633,7 @@ public class AccountTransfer extends AppCompatActivity {
         tvToTitle = findViewById(R.id.textView11);
         tvSelectAccount = findViewById(R.id.tvPickAccountTitle);
         tvSelectEmail = findViewById(R.id.tvEnterEmailTitle);
+        tvAcountBalance = findViewById(R.id.tvTransferAccountBalance);
 
 
 

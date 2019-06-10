@@ -1,14 +1,18 @@
 package com.example.keabankapp.account;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,15 +21,22 @@ import com.example.keabankapp.R;
 import com.example.keabankapp.adapter.AccountTransferAdapter;
 import com.example.keabankapp.models.AccountTransactionModel;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.WriteBatch;
 
+import java.util.List;
 import java.util.Objects;
 
 
@@ -39,11 +50,13 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
     private String accName;
     private String accountID;
     private String pathForAccount;
+    private String accountType;
     private TextView tvAccountName, tvAccountType, tvAccountBalance,tvTransactions;
     private String DocumentID;
     private AccountTransferAdapter adapter;
     private RecyclerView recyclerView;
-    Button btnDepositMoney, btnTransferMoney;
+    private double balance;
+    Button btnDepositMoney, btnTransferMoney,btnWithdrawMoney;
     String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 
@@ -64,8 +77,10 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         tvAccountBalance = findViewById(R.id.tvADAmount);
         btnDepositMoney = findViewById(R.id.btnDepositMoney);
         btnTransferMoney = findViewById(R.id.btnTransferMoney);
+        btnWithdrawMoney = findViewById(R.id.btnWithdrawMoney);
         btnTransferMoney.setOnClickListener(this);
         btnDepositMoney.setOnClickListener(this);
+        btnWithdrawMoney.setOnClickListener(this);
 
     }
 
@@ -106,9 +121,10 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
                 if (documentSnapshot.exists()){
                     String name = documentSnapshot.getString("aName");
                     String type = documentSnapshot.getString("aType");
-                    double balance = documentSnapshot.getDouble("aAmount");
+                    balance = documentSnapshot.getDouble("aAmount");
                     tvAccountName.setText(name);
                     tvAccountType.setText(type);
+                    accountType = type;
                     tvAccountBalance.setText(Double.toString(balance) + "kr");
                     DocumentID = documentSnapshot.getId();
 
@@ -190,6 +206,147 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
         };
     }
 
+    private void getWithdrawMoney(){
+            DocumentReference userRef = db.collection("users").document(userId);
+            DocumentReference accountRef = db.collection("users").document(userId).collection("accounts").document(accountID);
+
+            final Task<DocumentSnapshot> taskUserRef = userRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    Log.i(TAG, "onSuccess: taskUserRef: Got Document");
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.i(TAG, "onFailure: taskUserRef: Fail to get Document");
+                }
+            });
+
+            final Task<DocumentSnapshot> taskAccuntRef = accountRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    Log.i(TAG, "onSuccess: tastAccuntRef: Got Document");
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.i(TAG, "onFailure: tastAccountRef: Fail to get Document");
+                }
+            });
+
+        Tasks.whenAllComplete(taskAccuntRef,taskUserRef).addOnCompleteListener(new OnCompleteListener<List<Task<?>>>() {
+            @Override
+            public void onComplete(@NonNull Task<List<Task<?>>> task) {
+                long userAge = taskUserRef.getResult().getLong("uAge");
+                final double accountBalance = taskAccuntRef.getResult().getDouble("aAmount");
+                String accountType = taskAccuntRef.getResult().getString("aType");
+
+                if (accountType.equals("pension")){
+                    if (userAge >= 70){
+                        Log.i(TAG, "onComplete: user age OK");
+
+                        final EditText amountInputField = new EditText(AccountDetails.this);
+                        amountInputField.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+                        AlertDialog dialog = new AlertDialog.Builder(AccountDetails.this)
+                                .setTitle("Withdraw Money")
+                                .setMessage("Enter amount to withdraw")
+                                .setView(amountInputField)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Log.i(TAG, "onClick: OK");
+                                        if (accountBalance < Double.parseDouble(amountInputField.getText().toString())){
+                                            Log.d(TAG, "onClick: amountError: No Cash");
+                                            Toast.makeText(AccountDetails.this, "No Cash", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            transferMoney(amountInputField.getText().toString(), accountBalance);
+                                        }
+                                        
+                                    }
+                                }).setNegativeButton("Cancel",null)
+                                .create();
+                        dialog.show();
+
+                    } else {
+                        Log.i(TAG, "onComplete: user age to low");
+                        Toast.makeText(AccountDetails.this, getString(R.string.withdraw_error_age), Toast.LENGTH_LONG).show();
+                    }
+                    
+                } else {
+                    Log.i(TAG, "onComplete: withdraw ok!");
+                    final EditText amountInputField = new EditText(AccountDetails.this);
+                    amountInputField.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+                    AlertDialog dialog = new AlertDialog.Builder(AccountDetails.this)
+                            .setTitle("Withdraw Money")
+                            .setMessage("Enter amount to withdraw")
+                            .setView(amountInputField)
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Log.i(TAG, "onClick: OK");
+                                    if (accountBalance < Double.parseDouble(amountInputField.getText().toString())){
+                                        Log.d(TAG, "onClick: amountError: No Cash");
+                                        Toast.makeText(AccountDetails.this, "No Cash", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        transferMoney(amountInputField.getText().toString(), accountBalance);
+                                    }
+
+                                }
+                            }).setNegativeButton("Cancel",null)
+                            .create();
+                    dialog.show();
+
+                }
+
+            }
+        });
+    }
+    private void transferMoney(String amount, double oldBalance){
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference accountFromRef = db.collection("users").document(userId).collection("accounts").document(accountID);
+        Log.d(TAG, "transferMoney: from account with id: " + accountID);
+
+        final CollectionReference accountTransaction = db.collection("users").document(userId).collection("accounts").document(accountID)
+                .collection("transactions");
+
+
+
+
+        double valueFromET = Double.parseDouble(amount);
+        final double newBalance = (oldBalance - valueFromET);
+
+
+        final String tType = "withdraw";
+        final Timestamp tTimestamp = Timestamp.now();
+        final double tAmount = valueFromET;
+        final String tDocumentId = accountID;
+        final String tAccountToId = "";
+
+        WriteBatch batch = db.batch();
+        batch.update(accountFromRef,"aAmount",newBalance);
+
+        batch.commit().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+                    Log.d(TAG, "onComplete: Finish money transfer");
+                    accountTransaction.add(new AccountTransactionModel(tType,tAccountToId,tDocumentId,tTimestamp,tAmount)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Toast.makeText(AccountDetails.this, "Withdrawn some cash", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    Log.d(TAG, "onComplete: Something went wrong" + task.getException());
+                }
+            }
+        });
+    }
+
 
     //Runs when activity loads, and actions happens
     @Override
@@ -241,8 +398,14 @@ public class AccountDetails extends AppCompatActivity implements View.OnClickLis
                 Log.d(TAG, "onClickSwichCase: clicked ");
                 Intent intentTransf = new Intent(AccountDetails.this, AccountTransfer.class);
                 intentTransf.putExtra("accountID", DocumentID);
+                intentTransf.putExtra("accountBalance",balance);
                 startActivity(intentTransf);
                 break;
+            case R.id.btnWithdrawMoney:
+                Log.i(TAG, "onClickSwtichCase withdraw: clicked ");
+                getWithdrawMoney();
+                break;
+
         }
     }
 }
